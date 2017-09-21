@@ -55,7 +55,7 @@ define(['exports', 'aurelia-framework', './au-table'], function (exports, _aurel
     throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
   }
 
-  var _dec, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3;
+  var _dec, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4;
 
   var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aureliaFramework.inject)(_auTable.AureliaTableCustomAttribute, Element), _dec(_class = (_class2 = function () {
     function AutSortCustomAttribute(auTable, element) {
@@ -68,6 +68,8 @@ define(['exports', 'aurelia-framework', './au-table'], function (exports, _aurel
       _initDefineProp(this, 'custom', _descriptor2, this);
 
       _initDefineProp(this, 'default', _descriptor3, this);
+
+      _initDefineProp(this, 'type', _descriptor4, this);
 
       this.order = 0;
       this.orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
@@ -123,7 +125,8 @@ define(['exports', 'aurelia-framework', './au-table'], function (exports, _aurel
 
     AutSortCustomAttribute.prototype.doSort = function doSort() {
       this.ignoreEvent = true;
-      this.auTable.sortChanged(this.key, this.custom, this.order);
+
+      this.auTable.sortChanged(this.key, this.type || undefined, this.custom || undefined, this.order);
     };
 
     AutSortCustomAttribute.prototype.setClass = function setClass() {
@@ -149,6 +152,9 @@ define(['exports', 'aurelia-framework', './au-table'], function (exports, _aurel
     enumerable: true,
     initializer: null
   }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'default', [_aureliaFramework.bindable], {
+    enumerable: true,
+    initializer: null
+  }), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'type', [_aureliaFramework.bindable], {
     enumerable: true,
     initializer: null
   })), _class2)) || _class);

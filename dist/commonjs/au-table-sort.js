@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.AutSortCustomAttribute = undefined;
 
-var _dec, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3;
+var _dec, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4;
 
 var _aureliaFramework = require('aurelia-framework');
 
@@ -68,6 +68,8 @@ var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aurel
 
     _initDefineProp(this, 'default', _descriptor3, this);
 
+    _initDefineProp(this, 'type', _descriptor4, this);
+
     this.order = 0;
     this.orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
     this.ignoreEvent = false;
@@ -122,7 +124,8 @@ var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aurel
 
   AutSortCustomAttribute.prototype.doSort = function doSort() {
     this.ignoreEvent = true;
-    this.auTable.sortChanged(this.key, this.custom, this.order);
+
+    this.auTable.sortChanged(this.key, this.type || undefined, this.custom || undefined, this.order);
   };
 
   AutSortCustomAttribute.prototype.setClass = function setClass() {
@@ -148,6 +151,9 @@ var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aurel
   enumerable: true,
   initializer: null
 }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'default', [_aureliaFramework.bindable], {
+  enumerable: true,
+  initializer: null
+}), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'type', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
 })), _class2)) || _class);

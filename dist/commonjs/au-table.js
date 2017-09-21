@@ -3,9 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.AureliaTableCustomAttribute = undefined;
+exports.AureliaTableCustomAttribute = exports.sortFunctions = undefined;
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7;
+var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _class3, _temp;
 
 var _aureliaFramework = require('aurelia-framework');
 
@@ -54,7 +54,41 @@ function _initializerWarningHelper(descriptor, context) {
   throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
 }
 
-var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = (0, _aureliaFramework.inject)(_aureliaFramework.BindingEngine), _dec2 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec3 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec4 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec5 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec(_class = (_class2 = function () {
+function isNumeric(toCheck) {
+  return !isNaN(parseFloat(toCheck)) && isFinite(toCheck);
+}
+
+function isNullOrEmpty(toCheck) {
+  return toCheck == null || toCheck === "";
+}
+
+var sortFunctions = exports.sortFunctions = {
+  numeric: function numeric(a, b) {
+    if (a == null) return b == null ? 0 : -1;
+    if (b == null) return 1;
+    return a - b;
+  },
+  ascii: function ascii(a, b) {
+    if (a == null) a = '';
+    if (b == null) b = '';
+    return a < b ? -1 : a > b ? 1 : 0;
+  },
+  collator: function collator(a, b) {
+    return AureliaTableCustomAttribute.collator.compare(a, b);
+  },
+  auto: function auto(a, b) {
+    if (a == null) a = '';
+    if (b == null) b = '';
+
+    if (isNumeric(a) && isNumeric(b)) {
+      return a - b;
+    }
+
+    return AureliaTableCustomAttribute.collator.compare(a, b);
+  }
+};
+
+var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = (0, _aureliaFramework.inject)(_aureliaFramework.BindingEngine), _dec2 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec3 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec4 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec5 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec(_class = (_class2 = (_temp = _class3 = function () {
   function AureliaTableCustomAttribute(bindingEngine) {
     _classCallCheck(this, AureliaTableCustomAttribute);
 
@@ -64,16 +98,20 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
 
     _initDefineProp(this, 'filters', _descriptor3, this);
 
-    _initDefineProp(this, 'currentPage', _descriptor4, this);
+    _initDefineProp(this, 'sortTypes', _descriptor4, this);
 
-    _initDefineProp(this, 'pageSize', _descriptor5, this);
+    _initDefineProp(this, 'currentPage', _descriptor5, this);
 
-    _initDefineProp(this, 'totalItems', _descriptor6, this);
+    _initDefineProp(this, 'pageSize', _descriptor6, this);
 
-    _initDefineProp(this, 'api', _descriptor7, this);
+    _initDefineProp(this, 'totalItems', _descriptor7, this);
+
+    _initDefineProp(this, 'api', _descriptor8, this);
 
     this.isAttached = false;
     this.sortChangedListeners = [];
+    this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
+    this.sortKeysMap = new Map();
     this.beforePagination = [];
     this.filterObservers = [];
 
@@ -111,6 +149,27 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
       }
     }
 
+    if (Array.isArray(this.sortTypes)) {
+      for (var _iterator2 = this.sortTypes, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref3;
+
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref3 = _iterator2[_i2++];
+        } else {
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref3 = _i2.value;
+        }
+
+        var _ref4 = _ref3;
+        var type = _ref4.type,
+            sortFunction = _ref4.sortFunction;
+
+        if (type !== undefined && sortFunction !== undefined) this.sortTypeMap.set(type, sortFunction);
+      }
+    }
+
     this.api = {
       revealItem: function revealItem(item) {
         return _this.revealItem(item);
@@ -128,19 +187,19 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
       this.dataObserver.dispose();
     }
 
-    for (var _iterator2 = this.filterObservers, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-      var _ref2;
+    for (var _iterator3 = this.filterObservers, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+      var _ref5;
 
-      if (_isArray2) {
-        if (_i2 >= _iterator2.length) break;
-        _ref2 = _iterator2[_i2++];
+      if (_isArray3) {
+        if (_i3 >= _iterator3.length) break;
+        _ref5 = _iterator3[_i3++];
       } else {
-        _i2 = _iterator2.next();
-        if (_i2.done) break;
-        _ref2 = _i2.value;
+        _i3 = _iterator3.next();
+        if (_i3.done) break;
+        _ref5 = _i3.value;
       }
 
-      var observer = _ref2;
+      var observer = _ref5;
 
       observer.dispose();
     }
@@ -191,127 +250,165 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
   };
 
   AureliaTableCustomAttribute.prototype.doFilter = function doFilter(toFilter) {
-    var filteredData = [];
+    var _this2 = this;
 
-    for (var _iterator3 = toFilter, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-      var _ref3;
+    var hasFilterValue = this.filters.some(function (filter) {
+      return !isNullOrEmpty(filter.value);
+    });
+    if (!hasFilterValue) {
+      return toFilter;
+    }
 
-      if (_isArray3) {
-        if (_i3 >= _iterator3.length) break;
-        _ref3 = _iterator3[_i3++];
-      } else {
-        _i3 = _iterator3.next();
-        if (_i3.done) break;
-        _ref3 = _i3.value;
-      }
+    if (this.filters.length === 1) {
+      var filterFn = this.getFilterFn(this.filters[0]);
+      return toFilter.filter(filterFn);
+    }
 
-      var item = _ref3;
-
-      var passed = true;
-
-      for (var _iterator4 = this.filters, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-        var _ref4;
+    var filters = this.filters.map(function (filter) {
+      return _this2.getFilterFn(filter);
+    });
+    return toFilter.filter(function (item) {
+      for (var _iterator4 = filters, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+        var _ref6;
 
         if (_isArray4) {
           if (_i4 >= _iterator4.length) break;
-          _ref4 = _iterator4[_i4++];
+          _ref6 = _iterator4[_i4++];
         } else {
           _i4 = _iterator4.next();
           if (_i4.done) break;
-          _ref4 = _i4.value;
+          _ref6 = _i4.value;
         }
 
-        var filter = _ref4;
+        var filter = _ref6;
 
-        if (!this.passFilter(item, filter)) {
-          passed = false;
-          break;
+        if (!filter(item)) {
+          return false;
         }
       }
-
-      if (passed) {
-        filteredData.push(item);
-      }
-    }
-
-    return filteredData;
-  };
-
-  AureliaTableCustomAttribute.prototype.passFilter = function passFilter(item, filter) {
-    if (typeof filter.custom === 'function' && !filter.custom(filter.value, item)) {
-      return false;
-    }
-
-    if (filter.value === null || filter.value === undefined || !Array.isArray(filter.keys)) {
       return true;
-    }
-
-    for (var _iterator5 = filter.keys, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
-      var _ref5;
-
-      if (_isArray5) {
-        if (_i5 >= _iterator5.length) break;
-        _ref5 = _iterator5[_i5++];
-      } else {
-        _i5 = _iterator5.next();
-        if (_i5.done) break;
-        _ref5 = _i5.value;
-      }
-
-      var key = _ref5;
-
-      var value = this.getPropertyValue(item, key);
-
-      if (value !== null && value !== undefined) {
-        value = value.toString().toLowerCase();
-
-        if (value.indexOf(filter.value.toString().toLowerCase()) > -1) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  AureliaTableCustomAttribute.prototype.doSort = function doSort(toSort) {
-    var _this2 = this;
-
-    toSort.sort(function (a, b) {
-      if (typeof _this2.customSort === 'function') {
-        return _this2.customSort(a, b, _this2.sortOrder);
-      }
-
-      var val1 = void 0;
-      var val2 = void 0;
-
-      if (typeof _this2.sortKey === 'function') {
-        val1 = _this2.sortKey(a, _this2.sortOrder);
-        val2 = _this2.sortKey(b, _this2.sortOrder);
-      } else {
-        val1 = _this2.getPropertyValue(a, _this2.sortKey);
-        val2 = _this2.getPropertyValue(b, _this2.sortKey);
-      }
-
-      if (val1 === null) val1 = '';
-      if (val2 === null) val2 = '';
-
-      if (_this2.isNumeric(val1) && _this2.isNumeric(val2)) {
-        return (val1 - val2) * _this2.sortOrder;
-      }
-
-      var str1 = val1.toString();
-      var str2 = val2.toString();
-
-      return str1.localeCompare(str2) * _this2.sortOrder;
     });
   };
 
-  AureliaTableCustomAttribute.prototype.getPropertyValue = function getPropertyValue(object, keyPath) {
+  AureliaTableCustomAttribute.prototype.getFilterFn = function getFilterFn(filter) {
+    var _this3 = this;
+
+    var custom = filter.custom,
+        customValue = filter.customValue,
+        filterValue = filter.value;
+
+    if (customValue) filterValue = customValue(filterValue);
+
+    if (typeof custom === 'function') return function (item) {
+      return custom(filterValue, item);
+    };
+
+    if (isNullOrEmpty(filterValue) || !Array.isArray(filter.keys)) return function () {
+      return true;
+    };
+
+    filterValue = filterValue.toString().toLowerCase();
+
+    var valueFuncs = filter.keys.map(function (key) {
+      var keyPaths = _this3.getKeyPaths(key);
+      if (keyPaths.length === 1) {
+        var _key = keyPaths[0];
+        return function (item) {
+          return item[_key];
+        };
+      }
+      return function (item) {
+        return _this3.getPropertyValue(item, keyPaths);
+      };
+    });
+
+    return function (item) {
+      for (var _iterator5 = valueFuncs, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+        var _ref7;
+
+        if (_isArray5) {
+          if (_i5 >= _iterator5.length) break;
+          _ref7 = _iterator5[_i5++];
+        } else {
+          _i5 = _iterator5.next();
+          if (_i5.done) break;
+          _ref7 = _i5.value;
+        }
+
+        var valueFunc = _ref7;
+
+        var value = valueFunc(item);
+
+        if (value == null) continue;
+        value = value.toString().toLowerCase();
+        if (value.indexOf(filterValue) > -1) return true;
+      }
+      return false;
+    };
+  };
+
+  AureliaTableCustomAttribute.prototype.doSort = function doSort(toSort) {
+    var _this4 = this;
+
+    var sortFn = void 0;
+    var customSort = this.customSort,
+        _sortOrder = this.sortOrder,
+        sortOrder = _sortOrder === undefined ? 1 : _sortOrder,
+        sortKey = this.sortKey,
+        _sortType = this.sortType,
+        sortType = _sortType === undefined ? String : _sortType;
+
+    if (typeof customSort === 'function') {
+      sortFn = function sortFn(a, b) {
+        return customSort(a, b, sortOrder);
+      };
+      return toSort.sort(sortFn);
+    }
+
+    var sortFuncs = this.sortKeysMap.get(sortKey);
+    if (sortFuncs === undefined) {
+      sortFuncs = [];
+      var sort = this.sortTypeMap.get(sortType) || sortFunctions.auto;
+      if (typeof sortKey === 'function') {
+        sortFuncs[-1] = function (a, b) {
+          return sort(sortKey(a), sortKey(b)) * -1;
+        };
+        sortFuncs[1] = function (a, b) {
+          return sort(sortKey(a), sortKey(b));
+        };
+      } else {
+        var keyPaths = this.getKeyPaths(sortKey);
+        if (keyPaths.length === 1) {
+          var key = keyPaths[0];
+          sortFuncs[-1] = function (a, b) {
+            return sort(a[key], b[key]) * -1;
+          };
+          sortFuncs[1] = function (a, b) {
+            return sort(a[key], b[key]);
+          };
+        } else {
+          sortFuncs[-1] = function (a, b) {
+            return sort(_this4.getPropertyValue(a, keyPaths), _this4.getPropertyValue(b, keyPaths)) * -1;
+          };
+          sortFuncs[1] = function (a, b) {
+            return sort(_this4.getPropertyValue(a, keyPaths), _this4.getPropertyValue(b, keyPaths));
+          };
+        }
+      }
+      this.sortKeysMap.set(sortKey, sortFuncs);
+    }
+    return toSort.sort(sortFuncs[sortOrder]);
+  };
+
+  AureliaTableCustomAttribute.prototype.getKeyPaths = function getKeyPaths(keyPath) {
     keyPath = keyPath.replace(/\[(\w+)\]/g, '.$1');
     keyPath = keyPath.replace(/^\./, '');
-    var a = keyPath.split('.');
-    for (var i = 0, n = a.length; i < n; ++i) {
-      var k = a[i];
+    return keyPath.split('.');
+  };
+
+  AureliaTableCustomAttribute.prototype.getPropertyValue = function getPropertyValue(object, keyPaths) {
+    for (var i = 0, n = keyPaths.length; i < n; ++i) {
+      var k = keyPaths[i];
       if (k in object) {
         object = object[k];
       } else {
@@ -319,10 +416,6 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
       }
     }
     return object;
-  };
-
-  AureliaTableCustomAttribute.prototype.isNumeric = function isNumeric(toCheck) {
-    return !isNaN(parseFloat(toCheck)) && isFinite(toCheck);
   };
 
   AureliaTableCustomAttribute.prototype.doPaginate = function doPaginate(toPaginate) {
@@ -346,21 +439,22 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
   };
 
   AureliaTableCustomAttribute.prototype.dataChanged = function dataChanged() {
-    var _this3 = this;
+    var _this5 = this;
 
     if (this.dataObserver) {
       this.dataObserver.dispose();
     }
 
     this.dataObserver = this.bindingEngine.collectionObserver(this.data).subscribe(function () {
-      return _this3.applyPlugins();
+      return _this5.applyPlugins();
     });
 
     this.applyPlugins();
   };
 
-  AureliaTableCustomAttribute.prototype.sortChanged = function sortChanged(key, custom, order) {
+  AureliaTableCustomAttribute.prototype.sortChanged = function sortChanged(key, type, custom, order) {
     this.sortKey = key;
+    this.sortType = type;
     this.customSort = custom;
     this.sortOrder = order;
     this.applyPlugins();
@@ -377,18 +471,18 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
 
   AureliaTableCustomAttribute.prototype.emitSortChanged = function emitSortChanged() {
     for (var _iterator6 = this.sortChangedListeners, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
-      var _ref6;
+      var _ref8;
 
       if (_isArray6) {
         if (_i6 >= _iterator6.length) break;
-        _ref6 = _iterator6[_i6++];
+        _ref8 = _iterator6[_i6++];
       } else {
         _i6 = _iterator6.next();
         if (_i6.done) break;
-        _ref6 = _i6.value;
+        _ref8 = _i6.value;
       }
 
-      var listener = _ref6;
+      var listener = _ref8;
 
       listener();
     }
@@ -419,7 +513,7 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
   };
 
   return AureliaTableCustomAttribute;
-}(), (_descriptor = _applyDecoratedDescriptor(_class2.prototype, 'data', [_aureliaFramework.bindable], {
+}(), _class3.collator = new Intl.Collator(undefined, { numeric: true }), _temp), (_descriptor = _applyDecoratedDescriptor(_class2.prototype, 'data', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
 }), _descriptor2 = _applyDecoratedDescriptor(_class2.prototype, 'displayData', [_dec2], {
@@ -428,16 +522,19 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
 }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'filters', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'currentPage', [_dec3], {
+}), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'sortTypes', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'pageSize', [_aureliaFramework.bindable], {
+}), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'currentPage', [_dec3], {
   enumerable: true,
   initializer: null
-}), _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, 'totalItems', [_dec4], {
+}), _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, 'pageSize', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor7 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
+}), _descriptor7 = _applyDecoratedDescriptor(_class2.prototype, 'totalItems', [_dec4], {
+  enumerable: true,
+  initializer: null
+}), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
   enumerable: true,
   initializer: null
 })), _class2)) || _class);

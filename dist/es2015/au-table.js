@@ -1,4 +1,4 @@
-var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7;
+var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _class3, _temp;
 
 function _initDefineProp(target, property, descriptor, context) {
   if (!descriptor) return;
@@ -45,7 +45,39 @@ function _initializerWarningHelper(descriptor, context) {
 
 import { inject, bindable, bindingMode, BindingEngine } from 'aurelia-framework';
 
-export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec3 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec4 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec5 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec(_class = (_class2 = class AureliaTableCustomAttribute {
+function isNumeric(toCheck) {
+  return !isNaN(parseFloat(toCheck)) && isFinite(toCheck);
+}
+
+function isNullOrEmpty(toCheck) {
+  return toCheck == null || toCheck === "";
+}
+
+export const sortFunctions = {
+  numeric: (a, b) => {
+    if (a == null) return b == null ? 0 : -1;
+    if (b == null) return 1;
+    return a - b;
+  },
+  ascii: (a, b) => {
+    if (a == null) a = '';
+    if (b == null) b = '';
+    return a < b ? -1 : a > b ? 1 : 0;
+  },
+  collator: (a, b) => AureliaTableCustomAttribute.collator.compare(a, b),
+  auto: (a, b) => {
+    if (a == null) a = '';
+    if (b == null) b = '';
+
+    if (isNumeric(a) && isNumeric(b)) {
+      return a - b;
+    }
+
+    return AureliaTableCustomAttribute.collator.compare(a, b);
+  }
+};
+
+export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec3 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec4 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec5 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec(_class = (_class2 = (_temp = _class3 = class AureliaTableCustomAttribute {
 
   constructor(bindingEngine) {
     _initDefineProp(this, 'data', _descriptor, this);
@@ -54,16 +86,20 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
 
     _initDefineProp(this, 'filters', _descriptor3, this);
 
-    _initDefineProp(this, 'currentPage', _descriptor4, this);
+    _initDefineProp(this, 'sortTypes', _descriptor4, this);
 
-    _initDefineProp(this, 'pageSize', _descriptor5, this);
+    _initDefineProp(this, 'currentPage', _descriptor5, this);
 
-    _initDefineProp(this, 'totalItems', _descriptor6, this);
+    _initDefineProp(this, 'pageSize', _descriptor6, this);
 
-    _initDefineProp(this, 'api', _descriptor7, this);
+    _initDefineProp(this, 'totalItems', _descriptor7, this);
+
+    _initDefineProp(this, 'api', _descriptor8, this);
 
     this.isAttached = false;
     this.sortChangedListeners = [];
+    this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
+    this.sortKeysMap = new Map();
     this.beforePagination = [];
     this.filterObservers = [];
 
@@ -76,9 +112,17 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     }
 
     if (Array.isArray(this.filters)) {
-      for (let filter of this.filters) {
-        let observer = this.bindingEngine.propertyObserver(filter, 'value').subscribe(() => this.filterChanged());
+      for (const filter of this.filters) {
+        const observer = this.bindingEngine.propertyObserver(filter, 'value').subscribe(() => this.filterChanged());
         this.filterObservers.push(observer);
+      }
+    }
+
+    if (Array.isArray(this.sortTypes)) {
+      for (const _ref of this.sortTypes) {
+        const { type, sortFunction } = _ref;
+
+        if (type !== undefined && sortFunction !== undefined) this.sortTypeMap.set(type, sortFunction);
       }
     }
 
@@ -147,86 +191,98 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
   }
 
   doFilter(toFilter) {
-    let filteredData = [];
+    const hasFilterValue = this.filters.some(filter => !isNullOrEmpty(filter.value));
+    if (!hasFilterValue) {
+      return toFilter;
+    }
 
-    for (let item of toFilter) {
-      let passed = true;
+    if (this.filters.length === 1) {
+      const filterFn = this.getFilterFn(this.filters[0]);
+      return toFilter.filter(filterFn);
+    }
 
-      for (let filter of this.filters) {
-        if (!this.passFilter(item, filter)) {
-          passed = false;
-          break;
+    const filters = this.filters.map(filter => this.getFilterFn(filter));
+    return toFilter.filter(item => {
+      for (const filter of filters) {
+        if (!filter(item)) {
+          return false;
         }
       }
-
-      if (passed) {
-        filteredData.push(item);
-      }
-    }
-
-    return filteredData;
-  }
-
-  passFilter(item, filter) {
-    if (typeof filter.custom === 'function' && !filter.custom(filter.value, item)) {
-      return false;
-    }
-
-    if (filter.value === null || filter.value === undefined || !Array.isArray(filter.keys)) {
       return true;
-    }
-
-    for (let key of filter.keys) {
-      let value = this.getPropertyValue(item, key);
-
-      if (value !== null && value !== undefined) {
-        value = value.toString().toLowerCase();
-
-        if (value.indexOf(filter.value.toString().toLowerCase()) > -1) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  doSort(toSort) {
-    toSort.sort((a, b) => {
-      if (typeof this.customSort === 'function') {
-        return this.customSort(a, b, this.sortOrder);
-      }
-
-      let val1;
-      let val2;
-
-      if (typeof this.sortKey === 'function') {
-        val1 = this.sortKey(a, this.sortOrder);
-        val2 = this.sortKey(b, this.sortOrder);
-      } else {
-        val1 = this.getPropertyValue(a, this.sortKey);
-        val2 = this.getPropertyValue(b, this.sortKey);
-      }
-
-      if (val1 === null) val1 = '';
-      if (val2 === null) val2 = '';
-
-      if (this.isNumeric(val1) && this.isNumeric(val2)) {
-        return (val1 - val2) * this.sortOrder;
-      }
-
-      let str1 = val1.toString();
-      let str2 = val2.toString();
-
-      return str1.localeCompare(str2) * this.sortOrder;
     });
   }
 
-  getPropertyValue(object, keyPath) {
+  getFilterFn(filter) {
+    let { custom, customValue, value: filterValue } = filter;
+    if (customValue) filterValue = customValue(filterValue);
+
+    if (typeof custom === 'function') return item => custom(filterValue, item);
+
+    if (isNullOrEmpty(filterValue) || !Array.isArray(filter.keys)) return () => true;
+
+    filterValue = filterValue.toString().toLowerCase();
+
+    const valueFuncs = filter.keys.map(key => {
+      const keyPaths = this.getKeyPaths(key);
+      if (keyPaths.length === 1) {
+        const key = keyPaths[0];
+        return item => item[key];
+      }
+      return item => this.getPropertyValue(item, keyPaths);
+    });
+
+    return item => {
+      for (const valueFunc of valueFuncs) {
+        let value = valueFunc(item);
+
+        if (value == null) continue;
+        value = value.toString().toLowerCase();
+        if (value.indexOf(filterValue) > -1) return true;
+      }
+      return false;
+    };
+  }
+
+  doSort(toSort) {
+    let sortFn;
+    const { customSort, sortOrder = 1, sortKey, sortType = String } = this;
+    if (typeof customSort === 'function') {
+      sortFn = (a, b) => customSort(a, b, sortOrder);
+      return toSort.sort(sortFn);
+    }
+
+    let sortFuncs = this.sortKeysMap.get(sortKey);
+    if (sortFuncs === undefined) {
+      sortFuncs = [];
+      const sort = this.sortTypeMap.get(sortType) || sortFunctions.auto;
+      if (typeof sortKey === 'function') {
+        sortFuncs[-1] = (a, b) => sort(sortKey(a), sortKey(b)) * -1;
+        sortFuncs[1] = (a, b) => sort(sortKey(a), sortKey(b));
+      } else {
+        let keyPaths = this.getKeyPaths(sortKey);
+        if (keyPaths.length === 1) {
+          const key = keyPaths[0];
+          sortFuncs[-1] = (a, b) => sort(a[key], b[key]) * -1;
+          sortFuncs[1] = (a, b) => sort(a[key], b[key]);
+        } else {
+          sortFuncs[-1] = (a, b) => sort(this.getPropertyValue(a, keyPaths), this.getPropertyValue(b, keyPaths)) * -1;
+          sortFuncs[1] = (a, b) => sort(this.getPropertyValue(a, keyPaths), this.getPropertyValue(b, keyPaths));
+        }
+      }
+      this.sortKeysMap.set(sortKey, sortFuncs);
+    }
+    return toSort.sort(sortFuncs[sortOrder]);
+  }
+
+  getKeyPaths(keyPath) {
     keyPath = keyPath.replace(/\[(\w+)\]/g, '.$1');
     keyPath = keyPath.replace(/^\./, '');
-    let a = keyPath.split('.');
-    for (let i = 0, n = a.length; i < n; ++i) {
-      let k = a[i];
+    return keyPath.split('.');
+  }
+
+  getPropertyValue(object, keyPaths) {
+    for (let i = 0, n = keyPaths.length; i < n; ++i) {
+      let k = keyPaths[i];
       if (k in object) {
         object = object[k];
       } else {
@@ -234,10 +290,6 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
       }
     }
     return object;
-  }
-
-  isNumeric(toCheck) {
-    return !isNaN(parseFloat(toCheck)) && isFinite(toCheck);
   }
 
   doPaginate(toPaginate) {
@@ -270,8 +322,9 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     this.applyPlugins();
   }
 
-  sortChanged(key, custom, order) {
+  sortChanged(key, type, custom, order) {
     this.sortKey = key;
+    this.sortType = type;
     this.customSort = custom;
     this.sortOrder = order;
     this.applyPlugins();
@@ -316,7 +369,7 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     return true;
   }
 
-}, (_descriptor = _applyDecoratedDescriptor(_class2.prototype, 'data', [bindable], {
+}, _class3.collator = new Intl.Collator(undefined, { numeric: true }), _temp), (_descriptor = _applyDecoratedDescriptor(_class2.prototype, 'data', [bindable], {
   enumerable: true,
   initializer: null
 }), _descriptor2 = _applyDecoratedDescriptor(_class2.prototype, 'displayData', [_dec2], {
@@ -325,16 +378,19 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
 }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'filters', [bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'currentPage', [_dec3], {
+}), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'sortTypes', [bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'pageSize', [bindable], {
+}), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'currentPage', [_dec3], {
   enumerable: true,
   initializer: null
-}), _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, 'totalItems', [_dec4], {
+}), _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, 'pageSize', [bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor7 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
+}), _descriptor7 = _applyDecoratedDescriptor(_class2.prototype, 'totalItems', [_dec4], {
+  enumerable: true,
+  initializer: null
+}), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
   enumerable: true,
   initializer: null
 })), _class2)) || _class);

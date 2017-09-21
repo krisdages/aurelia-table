@@ -7,6 +7,7 @@ export class AutSortCustomAttribute {
     @bindable key;
     @bindable custom;
     @bindable default;
+    @bindable type;
 
   order = 0;
   orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
@@ -64,7 +65,8 @@ export class AutSortCustomAttribute {
 
   doSort() {
     this.ignoreEvent = true;
-    this.auTable.sortChanged(this.key, this.custom, this.order);
+    //Babel is defaulting properties to null instead of undefined... why?
+    this.auTable.sortChanged(this.key, this.type || undefined, this.custom || undefined, this.order);
   }
 
   setClass() {

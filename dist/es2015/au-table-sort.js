@@ -1,4 +1,4 @@
-var _dec, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3;
+var _dec, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4;
 
 function _initDefineProp(target, property, descriptor, context) {
   if (!descriptor) return;
@@ -55,6 +55,8 @@ export let AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, 
 
     _initDefineProp(this, 'default', _descriptor3, this);
 
+    _initDefineProp(this, 'type', _descriptor4, this);
+
     this.order = 0;
     this.orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
     this.ignoreEvent = false;
@@ -109,7 +111,8 @@ export let AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, 
 
   doSort() {
     this.ignoreEvent = true;
-    this.auTable.sortChanged(this.key, this.custom, this.order);
+
+    this.auTable.sortChanged(this.key, this.type || undefined, this.custom || undefined, this.order);
   }
 
   setClass() {
@@ -129,6 +132,9 @@ export let AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, 
   enumerable: true,
   initializer: null
 }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'default', [bindable], {
+  enumerable: true,
+  initializer: null
+}), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'type', [bindable], {
   enumerable: true,
   initializer: null
 })), _class2)) || _class);
