@@ -59,7 +59,7 @@ System.register(['aurelia-framework'], function (_export, _context) {
   }
 
   function isNullOrEmpty(toCheck) {
-    return toCheck == null || toCheck === "";
+    return toCheck == null || toCheck === '';
   }
 
   return {
@@ -73,12 +73,15 @@ System.register(['aurelia-framework'], function (_export, _context) {
       _export('sortFunctions', sortFunctions = {
         numeric: function numeric(a, b) {
           if (a == null) return b == null ? 0 : -1;
+
           if (b == null) return 1;
           return a - b;
         },
         ascii: function ascii(a, b) {
           if (a == null) a = '';
+
           if (b == null) b = '';
+
           return a < b ? -1 : a > b ? 1 : 0;
         },
         collator: function collator(a, b) {
@@ -86,6 +89,7 @@ System.register(['aurelia-framework'], function (_export, _context) {
         },
         auto: function auto(a, b) {
           if (a == null) a = '';
+
           if (b == null) b = '';
 
           if (isNumeric(a) && isNumeric(b)) {
@@ -176,7 +180,9 @@ System.register(['aurelia-framework'], function (_export, _context) {
               var type = _ref4.type,
                   sortFunction = _ref4.sortFunction;
 
-              if (type !== undefined && sortFunction !== undefined) this.sortTypeMap.set(type, sortFunction);
+              if (type !== undefined && sortFunction !== undefined) {
+                this.sortTypeMap.set(type, sortFunction);
+              }
             }
           }
 
@@ -307,24 +313,30 @@ System.register(['aurelia-framework'], function (_export, _context) {
               customValue = filter.customValue,
               filterValue = filter.value;
 
-          if (customValue) filterValue = customValue(filterValue);
+          if (customValue) {
+            filterValue = customValue(filterValue);
+          }
 
-          if (typeof custom === 'function') return function (item) {
-            return custom(filterValue, item);
-          };
+          if (typeof custom === 'function') {
+            return function (item) {
+              return custom(filterValue, item);
+            };
+          }
 
-          if (isNullOrEmpty(filterValue) || !Array.isArray(filter.keys)) return function () {
-            return true;
-          };
+          if (isNullOrEmpty(filterValue) || !Array.isArray(filter.keys)) {
+            return function () {
+              return true;
+            };
+          }
 
           filterValue = filterValue.toString().toLowerCase();
 
           var valueFuncs = filter.keys.map(function (key) {
             var keyPaths = _this3.getKeyPaths(key);
             if (keyPaths.length === 1) {
-              var _key = keyPaths[0];
+              key = keyPaths[0];
               return function (item) {
-                return item[_key];
+                return item[key];
               };
             }
             return function (item) {
@@ -349,9 +361,13 @@ System.register(['aurelia-framework'], function (_export, _context) {
 
               var value = valueFunc(item);
 
-              if (value == null) continue;
+              if (value == null) {
+                continue;
+              }
               value = value.toString().toLowerCase();
-              if (value.indexOf(filterValue) > -1) return true;
+              if (value.indexOf(filterValue) > -1) {
+                return true;
+              }
             }
             return false;
           };

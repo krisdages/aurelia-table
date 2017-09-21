@@ -50,23 +50,27 @@ function isNumeric(toCheck) {
 }
 
 function isNullOrEmpty(toCheck) {
-  return toCheck == null || toCheck === "";
+  return toCheck == null || toCheck === '';
 }
 
 export const sortFunctions = {
   numeric: (a, b) => {
     if (a == null) return b == null ? 0 : -1;
+
     if (b == null) return 1;
     return a - b;
   },
   ascii: (a, b) => {
     if (a == null) a = '';
+
     if (b == null) b = '';
+
     return a < b ? -1 : a > b ? 1 : 0;
   },
   collator: (a, b) => AureliaTableCustomAttribute.collator.compare(a, b),
   auto: (a, b) => {
     if (a == null) a = '';
+
     if (b == null) b = '';
 
     if (isNumeric(a) && isNumeric(b)) {
@@ -122,7 +126,9 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
       for (const _ref of this.sortTypes) {
         const { type, sortFunction } = _ref;
 
-        if (type !== undefined && sortFunction !== undefined) this.sortTypeMap.set(type, sortFunction);
+        if (type !== undefined && sortFunction !== undefined) {
+          this.sortTypeMap.set(type, sortFunction);
+        }
       }
     }
 
@@ -214,18 +220,24 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
 
   getFilterFn(filter) {
     let { custom, customValue, value: filterValue } = filter;
-    if (customValue) filterValue = customValue(filterValue);
+    if (customValue) {
+      filterValue = customValue(filterValue);
+    }
 
-    if (typeof custom === 'function') return item => custom(filterValue, item);
+    if (typeof custom === 'function') {
+      return item => custom(filterValue, item);
+    }
 
-    if (isNullOrEmpty(filterValue) || !Array.isArray(filter.keys)) return () => true;
+    if (isNullOrEmpty(filterValue) || !Array.isArray(filter.keys)) {
+      return () => true;
+    }
 
     filterValue = filterValue.toString().toLowerCase();
 
     const valueFuncs = filter.keys.map(key => {
       const keyPaths = this.getKeyPaths(key);
       if (keyPaths.length === 1) {
-        const key = keyPaths[0];
+        key = keyPaths[0];
         return item => item[key];
       }
       return item => this.getPropertyValue(item, keyPaths);
@@ -235,9 +247,13 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
       for (const valueFunc of valueFuncs) {
         let value = valueFunc(item);
 
-        if (value == null) continue;
+        if (value == null) {
+          continue;
+        }
         value = value.toString().toLowerCase();
-        if (value.indexOf(filterValue) > -1) return true;
+        if (value.indexOf(filterValue) > -1) {
+          return true;
+        }
       }
       return false;
     };

@@ -6,26 +6,34 @@ function isNumeric(toCheck) {
 
 function isNullOrEmpty(toCheck) {
   //Match null or undefined.
-  return toCheck == null || toCheck === "";
+  // eslint-disable-next-line eqeqeq,no-eq-null
+  return toCheck == null || toCheck === '';
 }
 
 export const sortFunctions = {
   numeric: (a, b) => {
     //Match null or undefined.
+    // eslint-disable-next-line eqeqeq,no-eq-null
     if (a == null) return (b == null) ? 0 : -1;
+    // eslint-disable-next-line eqeqeq,no-eq-null
     if (b == null) return 1;
     return a - b;
   },
   ascii: (a, b) => {
     //Match null or undefined.
+    // eslint-disable-next-line eqeqeq,no-eq-null
     if (a == null) a = '';
+    // eslint-disable-next-line eqeqeq,no-eq-null
     if (b == null) b = '';
+    // eslint-disable-next-line no-nested-ternary
     return (a < b ? -1 : (a > b ? 1 : 0));
   },
   collator: (a, b) => AureliaTableCustomAttribute.collator.compare(a, b),
   auto: (a, b) => {
     //Match null or undefined.
+    // eslint-disable-next-line eqeqeq,no-eq-null
     if (a == null) a = '';
+    // eslint-disable-next-line eqeqeq,no-eq-null
     if (b == null) b = '';
 
     if (isNumeric(a) && isNumeric(b)) {
@@ -91,8 +99,9 @@ export class AureliaTableCustomAttribute {
 
     if (Array.isArray(this.sortTypes)) {
       for (const { type, sortFunction } of this.sortTypes) {
-        if (type !== undefined && sortFunction !== undefined)
+        if (type !== undefined && sortFunction !== undefined) {
           this.sortTypeMap.set(type, sortFunction);
+        }
       }
     }
 
@@ -192,21 +201,24 @@ export class AureliaTableCustomAttribute {
 
   getFilterFn(filter) {
     let { custom, customValue, value: filterValue } = filter;
-    if (customValue)
+    if (customValue) {
       filterValue = customValue(filterValue);
+    }
 
-    if (typeof custom === 'function')
+    if (typeof custom === 'function') {
       return item => custom(filterValue, item);
+    }
 
-    if (isNullOrEmpty(filterValue) || !Array.isArray(filter.keys))
+    if (isNullOrEmpty(filterValue) || !Array.isArray(filter.keys)) {
       return () => true;
+    }
 
     filterValue = filterValue.toString().toLowerCase();
 
     const valueFuncs = filter.keys.map(key => {
       const keyPaths = this.getKeyPaths(key);
       if (keyPaths.length === 1) {
-        const key = keyPaths[0];
+        key = keyPaths[0];
         return item => item[key];
       }
       return item => this.getPropertyValue(item, keyPaths);
@@ -216,14 +228,17 @@ export class AureliaTableCustomAttribute {
       for (const valueFunc of valueFuncs) {
         let value = valueFunc(item);
         //Match null and undefined.
-        if (value == null)
+        // eslint-disable-next-line eqeqeq,no-eq-null
+        if (value == null) {
           continue;
+        }
         value = value.toString().toLowerCase();
-        if (value.indexOf(filterValue) > -1)
+        if (value.indexOf(filterValue) > -1) {
           return true;
+        }
       }
       return false;
-    }
+    };
   }
 
   doSort(toSort) {
@@ -241,15 +256,13 @@ export class AureliaTableCustomAttribute {
       if (typeof sortKey === 'function') {
         sortFuncs[-1] = (a, b) => sort(sortKey(a), sortKey(b)) * -1;
         sortFuncs[1] = (a, b) => sort(sortKey(a), sortKey(b));
-      }
-      else {
+      } else {
         let keyPaths = this.getKeyPaths(sortKey);
         if (keyPaths.length === 1) {
           const key = keyPaths[0];
           sortFuncs[-1] = (a, b) => sort(a[key], b[key]) * -1;
           sortFuncs[1] = (a, b) => sort(a[key], b[key]);
-        }
-        else {
+        } else {
           sortFuncs[-1] = (a, b) =>
             sort(this.getPropertyValue(a, keyPaths), this.getPropertyValue(b, keyPaths)) * -1;
           sortFuncs[1] = (a, b) =>
