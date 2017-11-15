@@ -55,7 +55,7 @@ define(['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
     throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
   }
 
-  var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _class3, _temp;
+  var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _class3, _temp;
 
   function isNumeric(toCheck) {
     return !isNaN(parseFloat(toCheck)) && isFinite(toCheck);
@@ -114,6 +114,8 @@ define(['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
       _initDefineProp(this, 'totalItems', _descriptor7, this);
 
       _initDefineProp(this, 'api', _descriptor8, this);
+
+      _initDefineProp(this, 'onFilterChanged', _descriptor9, this);
 
       this.isAttached = false;
       this.sortChangedListeners = [];
@@ -219,6 +221,9 @@ define(['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
         this.currentPage = 1;
       }
       this.applyPlugins();
+      if (typeof this.onFilterChanged === "function") {
+        this.onFilterChanged();
+      }
     };
 
     AureliaTableCustomAttribute.prototype.currentPageChanged = function currentPageChanged() {
@@ -554,6 +559,9 @@ define(['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
     enumerable: true,
     initializer: null
   }), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
+    enumerable: true,
+    initializer: null
+  }), _descriptor9 = _applyDecoratedDescriptor(_class2.prototype, 'onFilterChanged', [_aureliaFramework.bindable], {
     enumerable: true,
     initializer: null
   })), _class2)) || _class);

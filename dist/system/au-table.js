@@ -3,7 +3,7 @@
 System.register(['aurelia-framework'], function (_export, _context) {
   "use strict";
 
-  var inject, bindable, bindingMode, BindingEngine, _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _class3, _temp, sortFunctions, AureliaTableCustomAttribute;
+  var inject, bindable, bindingMode, BindingEngine, _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _class3, _temp, sortFunctions, AureliaTableCustomAttribute;
 
   function _initDefineProp(target, property, descriptor, context) {
     if (!descriptor) return;
@@ -122,6 +122,8 @@ System.register(['aurelia-framework'], function (_export, _context) {
 
           _initDefineProp(this, 'api', _descriptor8, this);
 
+          _initDefineProp(this, 'onFilterChanged', _descriptor9, this);
+
           this.isAttached = false;
           this.sortChangedListeners = [];
           this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
@@ -226,6 +228,9 @@ System.register(['aurelia-framework'], function (_export, _context) {
             this.currentPage = 1;
           }
           this.applyPlugins();
+          if (typeof this.onFilterChanged === "function") {
+            this.onFilterChanged();
+          }
         };
 
         AureliaTableCustomAttribute.prototype.currentPageChanged = function currentPageChanged() {
@@ -561,6 +566,9 @@ System.register(['aurelia-framework'], function (_export, _context) {
         enumerable: true,
         initializer: null
       }), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
+        enumerable: true,
+        initializer: null
+      }), _descriptor9 = _applyDecoratedDescriptor(_class2.prototype, 'onFilterChanged', [bindable], {
         enumerable: true,
         initializer: null
       })), _class2)) || _class));

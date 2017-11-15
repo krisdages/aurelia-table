@@ -61,6 +61,8 @@ export class AureliaTableCustomAttribute {
 
   @bindable({defaultBindingMode: bindingMode.twoWay}) api;
 
+  @bindable onFilterChanged;
+
   isAttached = false;
 
   sortKey;
@@ -130,6 +132,9 @@ export class AureliaTableCustomAttribute {
       this.currentPage = 1;
     }
     this.applyPlugins();
+    if (typeof this.onFilterChanged === "function") {
+      this.onFilterChanged();
+    }
   }
 
   currentPageChanged() {
@@ -173,6 +178,8 @@ export class AureliaTableCustomAttribute {
     }
 
     this.displayData = localData;
+
+
   }
 
   doFilter(toFilter) {

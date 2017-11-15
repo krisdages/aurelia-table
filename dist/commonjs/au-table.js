@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.AureliaTableCustomAttribute = exports.sortFunctions = undefined;
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _class3, _temp;
+var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _class3, _temp;
 
 var _aureliaFramework = require('aurelia-framework');
 
@@ -112,6 +112,8 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
 
     _initDefineProp(this, 'api', _descriptor8, this);
 
+    _initDefineProp(this, 'onFilterChanged', _descriptor9, this);
+
     this.isAttached = false;
     this.sortChangedListeners = [];
     this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
@@ -216,6 +218,9 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
       this.currentPage = 1;
     }
     this.applyPlugins();
+    if (typeof this.onFilterChanged === "function") {
+      this.onFilterChanged();
+    }
   };
 
   AureliaTableCustomAttribute.prototype.currentPageChanged = function currentPageChanged() {
@@ -551,6 +556,9 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
   enumerable: true,
   initializer: null
 }), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
+  enumerable: true,
+  initializer: null
+}), _descriptor9 = _applyDecoratedDescriptor(_class2.prototype, 'onFilterChanged', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
 })), _class2)) || _class);
