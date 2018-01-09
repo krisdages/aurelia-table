@@ -11,7 +11,19 @@ Out of the box you will get:
 For a complete list of features and examples please visit the [project page](http://tochoromero.github.com/aurelia-table).
 
 ### Release Notes
+##### Fork by Kris Dages
 
+#### 0.4.0
+* Expose bindable property displayDataUnpaged for accessing the sorted/filtered data without paging.
+
+#### 0.3.0
+* Added bindable delegate onFilterChanged
+
+#### 0.2.0
+* Optimized sorting and filtering. Added binding for sort datatype to aut-sort attribute.
+
+##### End Fork by Kris Dages
+----
 #### 0.1.13
 * Disable pagination if Page size is 0. Fixes #32
 * Improve support for webpack 2.0. Fixes #38

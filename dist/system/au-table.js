@@ -3,7 +3,7 @@
 System.register(['aurelia-framework'], function (_export, _context) {
   "use strict";
 
-  var inject, bindable, bindingMode, BindingEngine, _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _class3, _temp, sortFunctions, AureliaTableCustomAttribute;
+  var inject, bindable, bindingMode, BindingEngine, _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _descriptor10, _class3, _temp, sortFunctions, AureliaTableCustomAttribute;
 
   function _initDefineProp(target, property, descriptor, context) {
     if (!descriptor) return;
@@ -102,7 +102,7 @@ System.register(['aurelia-framework'], function (_export, _context) {
 
       _export('sortFunctions', sortFunctions);
 
-      _export('AureliaTableCustomAttribute', AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec3 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec4 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec5 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec(_class = (_class2 = (_temp = _class3 = function () {
+      _export('AureliaTableCustomAttribute', AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec3 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec4 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec5 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec6 = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec(_class = (_class2 = (_temp = _class3 = function () {
         function AureliaTableCustomAttribute(bindingEngine) {
           _classCallCheck(this, AureliaTableCustomAttribute);
 
@@ -110,25 +110,26 @@ System.register(['aurelia-framework'], function (_export, _context) {
 
           _initDefineProp(this, 'displayData', _descriptor2, this);
 
-          _initDefineProp(this, 'filters', _descriptor3, this);
+          _initDefineProp(this, 'displayDataUnpaged', _descriptor3, this);
 
-          _initDefineProp(this, 'sortTypes', _descriptor4, this);
+          _initDefineProp(this, 'filters', _descriptor4, this);
 
-          _initDefineProp(this, 'currentPage', _descriptor5, this);
+          _initDefineProp(this, 'sortTypes', _descriptor5, this);
 
-          _initDefineProp(this, 'pageSize', _descriptor6, this);
+          _initDefineProp(this, 'currentPage', _descriptor6, this);
 
-          _initDefineProp(this, 'totalItems', _descriptor7, this);
+          _initDefineProp(this, 'pageSize', _descriptor7, this);
 
-          _initDefineProp(this, 'api', _descriptor8, this);
+          _initDefineProp(this, 'totalItems', _descriptor8, this);
 
-          _initDefineProp(this, 'onFilterChanged', _descriptor9, this);
+          _initDefineProp(this, 'api', _descriptor9, this);
+
+          _initDefineProp(this, 'onFilterChanged', _descriptor10, this);
 
           this.isAttached = false;
           this.sortChangedListeners = [];
           this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
           this.sortKeysMap = new Map();
-          this.beforePagination = [];
           this.filterObservers = [];
 
           this.bindingEngine = bindingEngine;
@@ -263,7 +264,7 @@ System.register(['aurelia-framework'], function (_export, _context) {
           this.totalItems = localData.length;
 
           if (this.hasPagination()) {
-            this.beforePagination = [].concat(localData);
+            this.displayDataUnpaged = [].concat(localData);
             localData = this.doPaginate(localData);
           }
 
@@ -532,7 +533,7 @@ System.register(['aurelia-framework'], function (_export, _context) {
             return true;
           }
 
-          var index = this.beforePagination.indexOf(item);
+          var index = this.displayDataUnpaged.indexOf(item);
 
           if (index === -1) {
             return false;
@@ -550,25 +551,30 @@ System.register(['aurelia-framework'], function (_export, _context) {
       }), _descriptor2 = _applyDecoratedDescriptor(_class2.prototype, 'displayData', [_dec2], {
         enumerable: true,
         initializer: null
-      }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'filters', [bindable], {
+      }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'displayDataUnpaged', [_dec3], {
+        enumerable: true,
+        initializer: function initializer() {
+          return [];
+        }
+      }), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'filters', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'sortTypes', [bindable], {
+      }), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'sortTypes', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'currentPage', [_dec3], {
+      }), _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, 'currentPage', [_dec4], {
         enumerable: true,
         initializer: null
-      }), _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, 'pageSize', [bindable], {
+      }), _descriptor7 = _applyDecoratedDescriptor(_class2.prototype, 'pageSize', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor7 = _applyDecoratedDescriptor(_class2.prototype, 'totalItems', [_dec4], {
+      }), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'totalItems', [_dec5], {
         enumerable: true,
         initializer: null
-      }), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
+      }), _descriptor9 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec6], {
         enumerable: true,
         initializer: null
-      }), _descriptor9 = _applyDecoratedDescriptor(_class2.prototype, 'onFilterChanged', [bindable], {
+      }), _descriptor10 = _applyDecoratedDescriptor(_class2.prototype, 'onFilterChanged', [bindable], {
         enumerable: true,
         initializer: null
       })), _class2)) || _class));

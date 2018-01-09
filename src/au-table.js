@@ -51,6 +51,7 @@ export class AureliaTableCustomAttribute {
 
   @bindable data;
   @bindable({defaultBindingMode: bindingMode.twoWay}) displayData;
+  @bindable({defaultBindingMode: bindingMode.twoWay}) displayDataUnpaged = [];
 
   @bindable filters;
   @bindable sortTypes;
@@ -78,7 +79,6 @@ export class AureliaTableCustomAttribute {
     ['auto', sortFunctions.auto]
   ]);
   sortKeysMap = new Map();
-  beforePagination = [];
 
   dataObserver;
   filterObservers = [];
@@ -173,7 +173,7 @@ export class AureliaTableCustomAttribute {
     this.totalItems = localData.length;
 
     if (this.hasPagination()) {
-      this.beforePagination = [].concat(localData);
+      this.displayDataUnpaged = [].concat(localData);
       localData = this.doPaginate(localData);
     }
 
@@ -372,7 +372,7 @@ export class AureliaTableCustomAttribute {
       return true;
     }
 
-    let index = this.beforePagination.indexOf(item);
+    let index = this.displayDataUnpaged.indexOf(item);
 
     if (index === -1) {
       return false;

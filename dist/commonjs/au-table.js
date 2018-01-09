@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.AureliaTableCustomAttribute = exports.sortFunctions = undefined;
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _class3, _temp;
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _descriptor10, _class3, _temp;
 
 var _aureliaFramework = require('aurelia-framework');
 
@@ -92,7 +92,7 @@ var sortFunctions = exports.sortFunctions = {
   }
 };
 
-var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = (0, _aureliaFramework.inject)(_aureliaFramework.BindingEngine), _dec2 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec3 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec4 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec5 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec(_class = (_class2 = (_temp = _class3 = function () {
+var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = (0, _aureliaFramework.inject)(_aureliaFramework.BindingEngine), _dec2 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec3 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec4 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec5 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec6 = (0, _aureliaFramework.bindable)({ defaultBindingMode: _aureliaFramework.bindingMode.twoWay }), _dec(_class = (_class2 = (_temp = _class3 = function () {
   function AureliaTableCustomAttribute(bindingEngine) {
     _classCallCheck(this, AureliaTableCustomAttribute);
 
@@ -100,25 +100,26 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
 
     _initDefineProp(this, 'displayData', _descriptor2, this);
 
-    _initDefineProp(this, 'filters', _descriptor3, this);
+    _initDefineProp(this, 'displayDataUnpaged', _descriptor3, this);
 
-    _initDefineProp(this, 'sortTypes', _descriptor4, this);
+    _initDefineProp(this, 'filters', _descriptor4, this);
 
-    _initDefineProp(this, 'currentPage', _descriptor5, this);
+    _initDefineProp(this, 'sortTypes', _descriptor5, this);
 
-    _initDefineProp(this, 'pageSize', _descriptor6, this);
+    _initDefineProp(this, 'currentPage', _descriptor6, this);
 
-    _initDefineProp(this, 'totalItems', _descriptor7, this);
+    _initDefineProp(this, 'pageSize', _descriptor7, this);
 
-    _initDefineProp(this, 'api', _descriptor8, this);
+    _initDefineProp(this, 'totalItems', _descriptor8, this);
 
-    _initDefineProp(this, 'onFilterChanged', _descriptor9, this);
+    _initDefineProp(this, 'api', _descriptor9, this);
+
+    _initDefineProp(this, 'onFilterChanged', _descriptor10, this);
 
     this.isAttached = false;
     this.sortChangedListeners = [];
     this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
     this.sortKeysMap = new Map();
-    this.beforePagination = [];
     this.filterObservers = [];
 
     this.bindingEngine = bindingEngine;
@@ -253,7 +254,7 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     this.totalItems = localData.length;
 
     if (this.hasPagination()) {
-      this.beforePagination = [].concat(localData);
+      this.displayDataUnpaged = [].concat(localData);
       localData = this.doPaginate(localData);
     }
 
@@ -522,7 +523,7 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
       return true;
     }
 
-    var index = this.beforePagination.indexOf(item);
+    var index = this.displayDataUnpaged.indexOf(item);
 
     if (index === -1) {
       return false;
@@ -540,25 +541,30 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
 }), _descriptor2 = _applyDecoratedDescriptor(_class2.prototype, 'displayData', [_dec2], {
   enumerable: true,
   initializer: null
-}), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'filters', [_aureliaFramework.bindable], {
+}), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'displayDataUnpaged', [_dec3], {
+  enumerable: true,
+  initializer: function initializer() {
+    return [];
+  }
+}), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'filters', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'sortTypes', [_aureliaFramework.bindable], {
+}), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'sortTypes', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'currentPage', [_dec3], {
+}), _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, 'currentPage', [_dec4], {
   enumerable: true,
   initializer: null
-}), _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, 'pageSize', [_aureliaFramework.bindable], {
+}), _descriptor7 = _applyDecoratedDescriptor(_class2.prototype, 'pageSize', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
-}), _descriptor7 = _applyDecoratedDescriptor(_class2.prototype, 'totalItems', [_dec4], {
+}), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'totalItems', [_dec5], {
   enumerable: true,
   initializer: null
-}), _descriptor8 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec5], {
+}), _descriptor9 = _applyDecoratedDescriptor(_class2.prototype, 'api', [_dec6], {
   enumerable: true,
   initializer: null
-}), _descriptor9 = _applyDecoratedDescriptor(_class2.prototype, 'onFilterChanged', [_aureliaFramework.bindable], {
+}), _descriptor10 = _applyDecoratedDescriptor(_class2.prototype, 'onFilterChanged', [_aureliaFramework.bindable], {
   enumerable: true,
   initializer: null
 })), _class2)) || _class);
