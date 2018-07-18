@@ -77,6 +77,17 @@ System.register(['aurelia-framework'], function (_export, _context) {
           if (b == null) return 1;
           return a - b;
         },
+        numericDemoteNull: [function (a, b) {
+          if (a == null) return 1;
+
+          if (b == null) return -1;
+          return a - b;
+        }, function (a, b) {
+          if (a == null) return 1;
+
+          if (b == null) return -1;
+          return b - a;
+        }],
         ascii: function ascii(a, b) {
           if (a == null) a = '';
 
@@ -401,29 +412,41 @@ System.register(['aurelia-framework'], function (_export, _context) {
           if (sortFuncs === undefined) {
             sortFuncs = [];
             var sort = this.sortTypeMap.get(sortType) || sortFunctions.auto;
+            var sortAsc = void 0,
+                sortDesc = void 0;
+
+            if (Array.isArray(sort)) {
+              sortAsc = sort[0];
+              sortDesc = sort[1];
+            } else {
+              sortAsc = sort;
+              sortDesc = function sortDesc(a, b) {
+                return sortAsc(a, b) * -1;
+              };
+            }
             if (typeof sortKey === 'function') {
               sortFuncs[-1] = function (a, b) {
-                return sort(sortKey(a), sortKey(b)) * -1;
+                return sortDesc(sortKey(a), sortKey(b));
               };
               sortFuncs[1] = function (a, b) {
-                return sort(sortKey(a), sortKey(b));
+                return sortAsc(sortKey(a), sortKey(b));
               };
             } else {
               var keyPaths = this.getKeyPaths(sortKey);
               if (keyPaths.length === 1) {
                 var key = keyPaths[0];
                 sortFuncs[-1] = function (a, b) {
-                  return sort(a[key], b[key]) * -1;
+                  return sortDesc(a[key], b[key]);
                 };
                 sortFuncs[1] = function (a, b) {
-                  return sort(a[key], b[key]);
+                  return sortAsc(a[key], b[key]);
                 };
               } else {
                 sortFuncs[-1] = function (a, b) {
-                  return sort(_this4.getPropertyValue(a, keyPaths), _this4.getPropertyValue(b, keyPaths)) * -1;
+                  return sortDesc(_this4.getPropertyValue(a, keyPaths), _this4.getPropertyValue(b, keyPaths));
                 };
                 sortFuncs[1] = function (a, b) {
-                  return sort(_this4.getPropertyValue(a, keyPaths), _this4.getPropertyValue(b, keyPaths));
+                  return sortAsc(_this4.getPropertyValue(a, keyPaths), _this4.getPropertyValue(b, keyPaths));
                 };
               }
             }

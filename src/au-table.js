@@ -19,6 +19,22 @@ export const sortFunctions = {
     if (b == null) return 1;
     return a - b;
   },
+  numericDemoteNull: [
+    (a, b) => {
+      // eslint-disable-next-line eqeqeq,no-eq-null
+      if (a == null) return 1;
+      // eslint-disable-next-line eqeqeq,no-eq-null
+      if (b == null) return -1;
+      return a - b;
+    },
+    (a, b) => {
+      // eslint-disable-next-line eqeqeq,no-eq-null
+      if (a == null) return 1;
+      // eslint-disable-next-line eqeqeq,no-eq-null
+      if (b == null) return -1;
+      return b - a;
+    }
+  ],
   ascii: (a, b) => {
     //Match null or undefined.
     // eslint-disable-next-line eqeqeq,no-eq-null
@@ -260,20 +276,31 @@ export class AureliaTableCustomAttribute {
     if (sortFuncs === undefined) {
       sortFuncs = [];
       const sort = this.sortTypeMap.get(sortType) || sortFunctions.auto;
+      let sortAsc, sortDesc;
+      //If a tuple of functions [sortAsc, sortDesc] are registered for the sort type,
+      //use sortDesc for descending sort instead of multiplying the sortAsc result by -1.
+      if (Array.isArray(sort)) {
+          sortAsc = sort[0];
+          sortDesc = sort[1];
+      }
+      else {
+          sortAsc = sort;
+          sortDesc = (a, b) => sortAsc(a, b) * -1;
+      }
       if (typeof sortKey === 'function') {
-        sortFuncs[-1] = (a, b) => sort(sortKey(a), sortKey(b)) * -1;
-        sortFuncs[1] = (a, b) => sort(sortKey(a), sortKey(b));
+        sortFuncs[-1] = (a, b) => sortDesc(sortKey(a), sortKey(b));
+        sortFuncs[1] = (a, b) => sortAsc(sortKey(a), sortKey(b));
       } else {
         let keyPaths = this.getKeyPaths(sortKey);
         if (keyPaths.length === 1) {
           const key = keyPaths[0];
-          sortFuncs[-1] = (a, b) => sort(a[key], b[key]) * -1;
-          sortFuncs[1] = (a, b) => sort(a[key], b[key]);
+          sortFuncs[-1] = (a, b) => sortDesc(a[key], b[key]);
+          sortFuncs[1] = (a, b) => sortAsc(a[key], b[key]);
         } else {
           sortFuncs[-1] = (a, b) =>
-            sort(this.getPropertyValue(a, keyPaths), this.getPropertyValue(b, keyPaths)) * -1;
+            sortDesc(this.getPropertyValue(a, keyPaths), this.getPropertyValue(b, keyPaths));
           sortFuncs[1] = (a, b) =>
-            sort(this.getPropertyValue(a, keyPaths), this.getPropertyValue(b, keyPaths));
+            sortAsc(this.getPropertyValue(a, keyPaths), this.getPropertyValue(b, keyPaths));
         }
       }
       this.sortKeysMap.set(sortKey, sortFuncs);
