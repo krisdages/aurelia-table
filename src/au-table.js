@@ -60,6 +60,13 @@ export const sortFunctions = {
   }
 };
 
+export const updateTypes = Object.freeze({
+  filter: "filter",
+  sort: "sort",
+  page: "page",
+  data: "data"
+});
+
 @inject(BindingEngine)
 export class AureliaTableCustomAttribute {
 
@@ -68,6 +75,7 @@ export class AureliaTableCustomAttribute {
   @bindable data;
   @bindable({defaultBindingMode: bindingMode.twoWay}) displayData;
   @bindable({defaultBindingMode: bindingMode.twoWay}) displayDataUnpaged = [];
+  @bindable({defaultBindingMode: bindingMode.twoWay}) lastDataUpdate;
 
   @bindable filters;
   @bindable sortTypes;
@@ -105,7 +113,7 @@ export class AureliaTableCustomAttribute {
 
   bind() {
     if (Array.isArray(this.data)) {
-      this.dataObserver = this.bindingEngine.collectionObserver(this.data).subscribe(() => this.applyPlugins());
+      this.dataObserver = this.bindingEngine.collectionObserver(this.data).subscribe(() => this.applyPlugins(updateTypes.data));
     }
 
     if (Array.isArray(this.filters)) {
@@ -130,7 +138,7 @@ export class AureliaTableCustomAttribute {
 
   attached() {
     this.isAttached = true;
-    this.applyPlugins();
+    this.applyPlugins(updateTypes.data);
   }
 
   detached() {
@@ -144,21 +152,18 @@ export class AureliaTableCustomAttribute {
   }
 
   filterChanged() {
-    if (this.hasPagination()) {
-      this.currentPage = 1;
-    }
-    this.applyPlugins();
+    this.applyPlugins(updateTypes.filter);
     if (typeof this.onFilterChanged === "function") {
       this.onFilterChanged();
     }
   }
 
   currentPageChanged() {
-    this.applyPlugins();
+    this.applyPlugins(updateTypes.page);
   }
 
   pageSizeChanged() {
-    this.applyPlugins();
+    this.applyPlugins(updateTypes.page);
   }
 
   /**
@@ -168,43 +173,80 @@ export class AureliaTableCustomAttribute {
     return [].concat(this.data);
   }
 
+  //Private flag used to prevent recursively calling applyPlugins.
+  _isApplying = false;
   /**
    * Applies all the plugins to the display data
    */
-  applyPlugins() {
-    if (!this.isAttached || !this.data) {
+  applyPlugins(updateType) {
+    //Don't call recursively.
+    if (this._isApplying)
       return;
+
+    this._isApplying = true;
+
+    try {
+      this._applyPlugins(updateType);
     }
-
-    let localData = this.getDataCopy();
-
-    if (this.hasFilter()) {
-      localData = this.doFilter(localData);
+    finally {
+      this._isApplying = false;
     }
+  }
 
-    if ((this.sortKey || this.customSort) && this.sortOrder !== 0) {
-      this.doSort(localData);
-    }
+  _applyPlugins(updateType) {
+      if (!this.isAttached || !this.data) {
+        return;
+      }
 
-    this.totalItems = localData.length;
+      if (updateType === updateTypes.filter) {
+          if (this.hasPagination()) {
+            this.currentPage = 1;
+          }
+      }
 
-    if (this.hasPagination()) {
-      this.displayDataUnpaged = [].concat(localData);
-      localData = this.doPaginate(localData);
-    }
+      const lastDataUpdate = { updateType };
+      const result = { lastDataUpdate };
 
-    this.displayData = localData;
+      let localData; //array of items. If paging we don't need to repeat the sort and filter.
+      if (updateType !== updateTypes.page || this.lastDataUpdate === undefined) {
+        localData = this.getDataCopy();
 
+        if (this.hasFilterValue()) {
+          localData = this.doFilter(localData);
+          lastDataUpdate.filterValues = this.filters.map(filter => filter.value);
+        }
 
+        const { sortKey, customSort, sortOrder } = this;
+        if ((sortKey || customSort) && sortOrder !== 0) {
+          this.doSort(localData);
+          lastDataUpdate.sort = { sortOrder };
+          if (customSort) {
+            lastDataUpdate.sort.customSort = customSort;
+          }
+          if (sortKey) {
+            lastDataUpdate.sort.sortKey = sortKey;
+          }
+        }
+
+        result.totalItems = localData.length;
+        result.displayDataUnpaged = localData;
+
+      }
+      else {
+        localData = this.displayDataUnpaged;
+      }
+
+      lastDataUpdate.displayDataUnpaged = localData;
+
+      if (this.hasPagination()) {
+        localData = this.doPaginate(localData);
+      }
+
+      lastDataUpdate.displayData = result.displayData = localData;
+      Object.assign(this, result);
   }
 
   doFilter(toFilter) {
-    const hasFilterValue = this.filters.some(filter => !isNullOrEmpty(filter.value));
-    if (!hasFilterValue) {
-      //Skip processing and just return the original array.
-      return toFilter;
-    }
-
     //If there is only one filter, skip inner loop over filters.
     if (this.filters.length === 1) {
       const filterFn = this.getFilterFn(this.filters[0]);
@@ -348,6 +390,13 @@ export class AureliaTableCustomAttribute {
     return Array.isArray(this.filters) && this.filters.length > 0;
   }
 
+  hasFilterValue() {
+    if (!this.hasFilter())
+      return false;
+
+    return this.filters.some(filter => !isNullOrEmpty(filter.value));
+  }
+
   hasPagination() {
     return this.currentPage > 0 && this.pageSize > 0;
   }
@@ -358,9 +407,9 @@ export class AureliaTableCustomAttribute {
     }
 
     this.dataObserver = this.bindingEngine.collectionObserver(this.data)
-      .subscribe(() => this.applyPlugins());
+      .subscribe(() => this.applyPlugins(updateTypes.data));
 
-    this.applyPlugins();
+    this.applyPlugins(updateTypes.data);
   }
 
   sortChanged(key, type, custom, order) {
@@ -368,7 +417,7 @@ export class AureliaTableCustomAttribute {
     this.sortType = type;
     this.customSort = custom;
     this.sortOrder = order;
-    this.applyPlugins();
+    this.applyPlugins(updateTypes.sort);
     this.emitSortChanged();
   }
 

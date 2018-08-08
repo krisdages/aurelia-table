@@ -19,6 +19,16 @@ For a complete list of features and examples please visit the [project page](htt
 
 ### Release Notes
 ##### Fork by Kris Dages
+
+#### 0.6.0-prerelease
+- Optimized paging - Don't re-filter/sort for page changes
+- Added lastDataUpdate bindable property that contains:
+  - the type of update: "data" | "sort" | "filter" | "page"
+  - the applied sort properties
+  - the applied filter values
+  - displayData
+  - and displayDataUnpaged
+
 #### 0.5.0-prerelease
 - Allow sort functions for a column type to be specified as a tuple of `[sortAsc, sortDesc]`
 instead of a single asc sort function.
