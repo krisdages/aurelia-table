@@ -22,14 +22,14 @@ export const sortFunctions = {
   numericDemoteNull: [
     (a, b) => {
       // eslint-disable-next-line eqeqeq,no-eq-null
-      if (a == null) return 1;
+      if (a == null) return (b == null) ? 0 : 1;
       // eslint-disable-next-line eqeqeq,no-eq-null
       if (b == null) return -1;
       return a - b;
     },
     (a, b) => {
       // eslint-disable-next-line eqeqeq,no-eq-null
-      if (a == null) return 1;
+      if (a == null) return (b == null) ? 0 : 1;
       // eslint-disable-next-line eqeqeq,no-eq-null
       if (b == null) return -1;
       return b - a;

@@ -20,6 +20,9 @@ For a complete list of features and examples please visit the [project page](htt
 ### Release Notes
 ##### Fork by Kris Dages
 
+#### 0.6.1-prerelease
+- Fixed bug in sort function numericDemoteNull
+
 #### 0.6.0-prerelease
 - Optimized paging - Don't re-filter/sort for page changes
 - Added lastDataUpdate bindable property that contains:

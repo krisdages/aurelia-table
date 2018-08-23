@@ -70,12 +70,12 @@ var sortFunctions = exports.sortFunctions = {
     return a - b;
   },
   numericDemoteNull: [function (a, b) {
-    if (a == null) return 1;
+    if (a == null) return b == null ? 0 : 1;
 
     if (b == null) return -1;
     return a - b;
   }, function (a, b) {
-    if (a == null) return 1;
+    if (a == null) return b == null ? 0 : 1;
 
     if (b == null) return -1;
     return b - a;
