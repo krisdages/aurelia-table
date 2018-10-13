@@ -3,7 +3,7 @@
 System.register(['aurelia-framework', './au-table'], function (_export, _context) {
   "use strict";
 
-  var inject, bindable, AureliaTableCustomAttribute, _dec, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, AutSortCustomAttribute;
+  var inject, bindable, AureliaTableCustomAttribute, _createClass, _dec, _class, _desc, _value, _class2, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, AutSortCustomAttribute;
 
   function _initDefineProp(target, property, descriptor, context) {
     if (!descriptor) return;
@@ -62,19 +62,48 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
       AureliaTableCustomAttribute = _auTable.AureliaTableCustomAttribute;
     }],
     execute: function () {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
       _export('AutSortCustomAttribute', AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, Element), _dec(_class = (_class2 = function () {
+        _createClass(AutSortCustomAttribute, [{
+          key: 'defaultOrder',
+          get: function get() {
+            if (!this.default) return undefined;
+
+            return this.default === 'desc' ? -1 : 1;
+          }
+        }]);
+
         function AutSortCustomAttribute(auTable, element) {
           var _this = this;
 
           _classCallCheck(this, AutSortCustomAttribute);
 
-          _initDefineProp(this, 'key', _descriptor, this);
+          _initDefineProp(this, 'id', _descriptor, this);
 
-          _initDefineProp(this, 'custom', _descriptor2, this);
+          _initDefineProp(this, 'key', _descriptor2, this);
 
-          _initDefineProp(this, 'default', _descriptor3, this);
+          _initDefineProp(this, 'custom', _descriptor3, this);
 
           _initDefineProp(this, 'type', _descriptor4, this);
+
+          _initDefineProp(this, 'default', _descriptor5, this);
 
           this.order = 0;
           this.orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
@@ -110,7 +139,7 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
           this.element.classList.add('aut-sort');
 
           this.element.addEventListener('click', this.rowSelectedListener);
-          this.auTable.addSortChangedListener(this.sortChangedListener);
+          this.auTable.registerSortAttribute(this);
 
           this.handleDefault();
           this.setClass();
@@ -118,13 +147,12 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
 
         AutSortCustomAttribute.prototype.detached = function detached() {
           this.element.removeEventListener('click', this.rowSelectedListener);
-          this.auTable.removeSortChangedListener(this.sortChangedListener);
+          this.auTable.unregisterSortAttribute(this);
         };
 
         AutSortCustomAttribute.prototype.handleDefault = function handleDefault() {
           if (this.default) {
-            this.order = this.default === 'desc' ? -1 : 1;
-            this.doSort();
+            this.auTable.setDefaultSort(this);
           }
         };
 
@@ -149,17 +177,26 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
           this.doSort();
         };
 
+        AutSortCustomAttribute.prototype.setActive = function setActive(order) {
+          this.order = order;
+          this.setClass();
+          this.doSort();
+        };
+
         return AutSortCustomAttribute;
-      }(), (_descriptor = _applyDecoratedDescriptor(_class2.prototype, 'key', [bindable], {
+      }(), (_descriptor = _applyDecoratedDescriptor(_class2.prototype, 'id', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor2 = _applyDecoratedDescriptor(_class2.prototype, 'custom', [bindable], {
+      }), _descriptor2 = _applyDecoratedDescriptor(_class2.prototype, 'key', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'default', [bindable], {
+      }), _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, 'custom', [bindable], {
         enumerable: true,
         initializer: null
       }), _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, 'type', [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, 'default', [bindable], {
         enumerable: true,
         initializer: null
       })), _class2)) || _class));

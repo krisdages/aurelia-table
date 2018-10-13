@@ -137,7 +137,8 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     _initDefineProp(this, 'onFilterChanged', _descriptor11, this);
 
     this.isAttached = false;
-    this.sortChangedListeners = [];
+    this.sortAttributes = new Set();
+    this.sortAttributesById = new Map();
     this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
     this.sortKeysMap = new Map();
     this.filterObservers = [];
@@ -553,20 +554,63 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     this.sortType = type;
     this.customSort = custom;
     this.sortOrder = order;
+    this.pendingSort = undefined;
     this.applyPlugins(updateTypes.sort);
     this.emitSortChanged();
   };
 
-  AureliaTableCustomAttribute.prototype.addSortChangedListener = function addSortChangedListener(callback) {
-    this.sortChangedListeners.push(callback);
+  AureliaTableCustomAttribute.prototype.registerSortAttribute = function registerSortAttribute(sortAttribute) {
+    this.sortAttributes.add(sortAttribute);
+    var key = sortAttribute.key,
+        id = sortAttribute.id;
+
+    if (id !== undefined) {
+      this.sortAttributesById.set(sortAttribute.id, sortAttribute);
+    }
+    if (this.pendingSort !== undefined) {
+      var _pendingSort = this.pendingSort,
+          pendingId = _pendingSort.id,
+          pendingKey = _pendingSort.key,
+          order = _pendingSort.order;
+
+      if (pendingId !== undefined) {
+        if (id === pendingId) {
+          sortAttribute.setActive(order);
+        }
+      } else if (pendingKey !== undefined && key === pendingKey) {
+        sortAttribute.setActive(order);
+      }
+    }
   };
 
-  AureliaTableCustomAttribute.prototype.removeSortChangedListener = function removeSortChangedListener(callback) {
-    this.removeListener(callback, this.sortChangedListeners);
+  AureliaTableCustomAttribute.prototype.unregisterSortAttribute = function unregisterSortAttribute(sortAttribute) {
+    this.sortAttributes.delete(sortAttribute);
+    if (sortAttribute.id !== undefined) {
+      this.sortAttributesById.delete(sortAttribute.id);
+    }
   };
 
-  AureliaTableCustomAttribute.prototype.emitSortChanged = function emitSortChanged() {
-    for (var _iterator6 = this.sortChangedListeners, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
+  AureliaTableCustomAttribute.prototype.setDefaultSort = function setDefaultSort(sortAttribute) {
+    if (this.sortKey === undefined) {
+      sortAttribute.setActive(sortAttribute.defaultOrder);
+    }
+  };
+
+  AureliaTableCustomAttribute.prototype.clearSort = function clearSort() {
+    this.sortChanged(undefined, undefined, undefined, 0);
+  };
+
+  AureliaTableCustomAttribute.prototype.sortByAttributeId = function sortByAttributeId(id, order) {
+    var attribute = this.sortAttributesById.get(id);
+    if (attribute !== undefined) {
+      attribute.setActive(order);
+    } else {
+      this.pendingSort = { id: id, order: order };
+    }
+  };
+
+  AureliaTableCustomAttribute.prototype.sortByKey = function sortByKey(key, order) {
+    for (var _iterator6 = this.sortAttributes, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
       var _ref8;
 
       if (_isArray6) {
@@ -578,17 +622,33 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
         _ref8 = _i6.value;
       }
 
-      var listener = _ref8;
+      var attribute = _ref8;
 
-      listener();
+      if (attribute.key !== key) continue;
+
+      attribute.setActive(order);
+      return;
     }
+
+    this.pendingSort = { key: key, order: order };
   };
 
-  AureliaTableCustomAttribute.prototype.removeListener = function removeListener(callback, listeners) {
-    var index = listeners.indexOf(callback);
+  AureliaTableCustomAttribute.prototype.emitSortChanged = function emitSortChanged() {
+    for (var _iterator7 = this.sortAttributes, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator]();;) {
+      var _ref9;
 
-    if (index > -1) {
-      listeners.splice(index, 1);
+      if (_isArray7) {
+        if (_i7 >= _iterator7.length) break;
+        _ref9 = _iterator7[_i7++];
+      } else {
+        _i7 = _iterator7.next();
+        if (_i7.done) break;
+        _ref9 = _i7.value;
+      }
+
+      var attribute = _ref9;
+
+      attribute.sortChangedListener();
     }
   };
 

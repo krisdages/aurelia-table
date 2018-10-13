@@ -20,6 +20,22 @@ For a complete list of features and examples please visit the [project page](htt
 ### Release Notes
 ##### Fork by Kris Dages
 
+#### 0.7.0-prerelease
+- Changes to sort functionality
+  - Added bindable `id` property to sort attribute
+  - Added `setActive(order)` method to sort attribute
+    - Triggers a sort on the attribute as if it had been clicked, using the specified order.  
+  - Added sorting methods to table attribute
+    - `setDefaultSort(sortAttribute)`
+      - Activates the provided attribute if the table is not already sorted.<br/>
+        This change prevents forced sorts when columns are added to the table.
+    - `clearSort()` - Removes any sorting currently applied to the table.
+    - `sortByAttributeId(id, order)` / `sortByKey(key, order)`
+      - Sort by the sort attribute with the given id/key, using the specified order.<br/>
+        If there is not a sort attribute with the given id/key, the table will be sorted by 
+        that attribute if it is added before the table is sorted again.<br/>
+        (This behavior is to support adding a column and sorting by it programmatically within the same event frame) 
+
 #### 0.6.1-prerelease
 - Fixed bug in sort function numericDemoteNull
 

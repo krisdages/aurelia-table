@@ -125,7 +125,8 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     _initDefineProp(this, 'onFilterChanged', _descriptor11, this);
 
     this.isAttached = false;
-    this.sortChangedListeners = [];
+    this.sortAttributes = new Set();
+    this.sortAttributesById = new Map();
     this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
     this.sortKeysMap = new Map();
     this.filterObservers = [];
@@ -415,29 +416,69 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     this.sortType = type;
     this.customSort = custom;
     this.sortOrder = order;
+    this.pendingSort = undefined;
     this.applyPlugins(updateTypes.sort);
     this.emitSortChanged();
   }
 
-  addSortChangedListener(callback) {
-    this.sortChangedListeners.push(callback);
-  }
-
-  removeSortChangedListener(callback) {
-    this.removeListener(callback, this.sortChangedListeners);
-  }
-
-  emitSortChanged() {
-    for (let listener of this.sortChangedListeners) {
-      listener();
+  registerSortAttribute(sortAttribute) {
+    this.sortAttributes.add(sortAttribute);
+    const { key, id } = sortAttribute;
+    if (id !== undefined) {
+      this.sortAttributesById.set(sortAttribute.id, sortAttribute);
+    }
+    if (this.pendingSort !== undefined) {
+      const { id: pendingId, key: pendingKey, order } = this.pendingSort;
+      if (pendingId !== undefined) {
+        if (id === pendingId) {
+          sortAttribute.setActive(order);
+        }
+      } else if (pendingKey !== undefined && key === pendingKey) {
+        sortAttribute.setActive(order);
+      }
     }
   }
 
-  removeListener(callback, listeners) {
-    let index = listeners.indexOf(callback);
+  unregisterSortAttribute(sortAttribute) {
+    this.sortAttributes.delete(sortAttribute);
+    if (sortAttribute.id !== undefined) {
+      this.sortAttributesById.delete(sortAttribute.id);
+    }
+  }
 
-    if (index > -1) {
-      listeners.splice(index, 1);
+  setDefaultSort(sortAttribute) {
+    if (this.sortKey === undefined) {
+      sortAttribute.setActive(sortAttribute.defaultOrder);
+    }
+  }
+
+  clearSort() {
+    this.sortChanged(undefined, undefined, undefined, 0);
+  }
+
+  sortByAttributeId(id, order) {
+    const attribute = this.sortAttributesById.get(id);
+    if (attribute !== undefined) {
+      attribute.setActive(order);
+    } else {
+      this.pendingSort = { id, order };
+    }
+  }
+
+  sortByKey(key, order) {
+    for (const attribute of this.sortAttributes) {
+      if (attribute.key !== key) continue;
+
+      attribute.setActive(order);
+      return;
+    }
+
+    this.pendingSort = { key, order };
+  }
+
+  emitSortChanged() {
+    for (const attribute of this.sortAttributes) {
+      attribute.sortChangedListener();
     }
   }
 

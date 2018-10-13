@@ -93,7 +93,8 @@ export class AureliaTableCustomAttribute {
   sortKey;
   sortType;
   sortOrder;
-  sortChangedListeners = [];
+  sortAttributes = new Set();
+  sortAttributesById = new Map();
   sortTypeMap = new Map([
     [Number, sortFunctions.numeric],
     [Boolean, sortFunctions.numeric],
@@ -103,6 +104,9 @@ export class AureliaTableCustomAttribute {
     ['auto', sortFunctions.auto]
   ]);
   sortKeysMap = new Map();
+  //Sort config object set if explicitly sorted by a key / id that is not present.
+  //Will sort by this if a matching sort attribute is registered before sort is changed.
+  pendingSort;
 
   dataObserver;
   filterObservers = [];
@@ -417,29 +421,74 @@ export class AureliaTableCustomAttribute {
     this.sortType = type;
     this.customSort = custom;
     this.sortOrder = order;
+    this.pendingSort = undefined;
     this.applyPlugins(updateTypes.sort);
     this.emitSortChanged();
   }
 
-  addSortChangedListener(callback) {
-    this.sortChangedListeners.push(callback);
-  }
-
-  removeSortChangedListener(callback) {
-    this.removeListener(callback, this.sortChangedListeners);
-  }
-
-  emitSortChanged() {
-    for (let listener of this.sortChangedListeners) {
-      listener();
+  registerSortAttribute(sortAttribute) {
+    this.sortAttributes.add(sortAttribute);
+    const { key, id } = sortAttribute;
+    if (id !== undefined) {
+      this.sortAttributesById.set(sortAttribute.id, sortAttribute);
+    }
+    if (this.pendingSort !== undefined) {
+      const { id: pendingId, key: pendingKey, order } = this.pendingSort;
+      if (pendingId !== undefined) {
+        if (id === pendingId) {
+          sortAttribute.setActive(order);
+        }
+      }
+      else if (pendingKey !== undefined && key === pendingKey) {
+        sortAttribute.setActive(order);
+      }
     }
   }
 
-  removeListener(callback, listeners) {
-    let index = listeners.indexOf(callback);
+  unregisterSortAttribute(sortAttribute) {
+    this.sortAttributes.delete(sortAttribute);
+    if (sortAttribute.id !== undefined) {
+      this.sortAttributesById.delete(sortAttribute.id);
+    }
+  }
 
-    if (index > -1) {
-      listeners.splice(index, 1);
+  setDefaultSort(sortAttribute) {
+    if (this.sortKey === undefined) {
+      sortAttribute.setActive(sortAttribute.defaultOrder);
+    }
+  }
+
+  clearSort() {
+    this.sortChanged(undefined, undefined, undefined, 0);
+  }
+
+  //Sort by the sort attribute with the given id, using the specified order.
+  sortByAttributeId(id, order) {
+    const attribute = this.sortAttributesById.get(id);
+    if (attribute !== undefined) {
+      attribute.setActive(order);
+    }
+    else {
+      this.pendingSort = { id, order };
+    }
+  }
+
+  //Sort by the sort attribute with the given key, using the specified order.
+  sortByKey(key, order) {
+    for (const attribute of this.sortAttributes) {
+      if (attribute.key !== key)
+        continue;
+
+      attribute.setActive(order);
+      return;
+    }
+
+    this.pendingSort = { key, order };
+  }
+
+  emitSortChanged() {
+    for (const attribute of this.sortAttributes) {
+      attribute.sortChangedListener();
     }
   }
 

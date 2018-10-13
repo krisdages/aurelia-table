@@ -4,10 +4,18 @@ import {AureliaTableCustomAttribute} from './au-table';
 @inject(AureliaTableCustomAttribute, Element)
 export class AutSortCustomAttribute {
 
-    @bindable key;
-    @bindable custom;
-    @bindable default;
-    @bindable type;
+  @bindable id;
+  @bindable key;
+  @bindable custom;
+  @bindable type;
+  @bindable default;
+
+  get defaultOrder() {
+    if (!this.default)
+      return undefined;
+
+    return this.default === 'desc' ? -1 : 1;
+  }
 
   order = 0;
   orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
@@ -45,7 +53,7 @@ export class AutSortCustomAttribute {
     this.element.classList.add('aut-sort');
 
     this.element.addEventListener('click', this.rowSelectedListener);
-    this.auTable.addSortChangedListener(this.sortChangedListener);
+    this.auTable.registerSortAttribute(this);
 
     this.handleDefault();
     this.setClass();
@@ -53,13 +61,12 @@ export class AutSortCustomAttribute {
 
   detached() {
     this.element.removeEventListener('click', this.rowSelectedListener);
-    this.auTable.removeSortChangedListener(this.sortChangedListener);
+    this.auTable.unregisterSortAttribute(this);
   }
 
   handleDefault() {
     if (this.default) {
-      this.order = this.default === 'desc' ? -1 : 1;
-      this.doSort();
+      this.auTable.setDefaultSort(this);
     }
   }
 
@@ -76,6 +83,12 @@ export class AutSortCustomAttribute {
 
   handleHeaderClicked() {
     this.order = this.order === 0 || this.order === -1 ? this.order + 1 : -1;
+    this.setClass();
+    this.doSort();
+  }
+
+  setActive(order) {
+    this.order = order;
     this.setClass();
     this.doSort();
   }
