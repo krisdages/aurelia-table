@@ -490,6 +490,8 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
   };
 
   AureliaTableCustomAttribute.prototype.getKeyPaths = function getKeyPaths(keyPath) {
+    if (Array.isArray(keyPath)) return keyPath;
+
     keyPath = keyPath.replace(/\[(\w+)\]/g, '.$1');
     keyPath = keyPath.replace(/^\./, '');
     return keyPath.split('.');

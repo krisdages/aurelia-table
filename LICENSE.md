@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2018 Kris Dages
+Copyright (c) 2020 Kris Dages
 
 Copyright (c) 2016 Hector Romero
 

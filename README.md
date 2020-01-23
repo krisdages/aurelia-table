@@ -20,6 +20,9 @@ For a complete list of features and examples please visit the [project page](htt
 ### Release Notes
 ##### Fork by Kris Dages
 
+#### 0.8.0-prerelease
+- Allow Array of path properties for sortKey instead of dotted syntax.
+
 #### 0.7.0-prerelease
 - Changes to sort functionality
   - Added bindable `id` property to sort attribute

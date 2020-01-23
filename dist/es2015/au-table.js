@@ -358,6 +358,8 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
   }
 
   getKeyPaths(keyPath) {
+    if (Array.isArray(keyPath)) return keyPath;
+
     keyPath = keyPath.replace(/\[(\w+)\]/g, '.$1');
     keyPath = keyPath.replace(/^\./, '');
     return keyPath.split('.');
