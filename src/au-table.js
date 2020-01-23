@@ -355,6 +355,9 @@ export class AureliaTableCustomAttribute {
   }
 
   getKeyPaths(keyPath) {
+    if (Array.isArray(keyPath))
+      return keyPath;
+
     keyPath = keyPath.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
     keyPath = keyPath.replace(/^\./, '');           // strip a leading dot
     return keyPath.split('.');
