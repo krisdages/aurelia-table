@@ -1,6 +1,6 @@
 {
   "name": "@krisdages/aurelia-table",
-  "version": "0.8.0-prerelease",
+  "version": "0.8.1-prerelease",
   "description": "A simple and powerful data table for Aurelia.",
   "keywords": [
     "aurelia",
@@ -11,10 +11,10 @@
   "aurelia": {
     "build": {
       "resources": [
-        "au-table/au-table",
-        "au-table/au-table-pagination",
-        "au-table/au-table-select",
-        "au-table/au-table-sort"
+        "au-table",
+        "au-table-pagination",
+        "au-table-select",
+        "au-table-sort"
       ]
     }
   },
@@ -25,13 +25,13 @@
   "license": "MIT",
   "author": "Kris Dages",
   "main": "dist/commonjs/index.js",
+  "module": "dist/es2015/index.js",
   "repository": {
     "type": "git",
     "url": "http://github.com/krisdages/aurelia-table"
   },
   "dependencies": {
-    "aurelia-pal": "^1.8.2",
-    "natives": "^1.1.6"
+    "aurelia-pal": "^1.8.2"
   },
   "devDependencies": {
     "aurelia-tools": "^0.2.4",
@@ -62,6 +62,7 @@
     "karma-coverage": "^1.1.2",
     "karma-jasmine": "^1.1.2",
     "karma-jspm": "^2.2.3",
+    "natives": "^1.1.6",
     "object.assign": "^4.1.0",
     "require-dir": "^0.3.0",
     "run-sequence": "^1.2.2",
