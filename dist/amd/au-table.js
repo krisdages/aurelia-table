@@ -463,10 +463,10 @@ define(['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
         }
         if (typeof sortKey === 'function') {
           sortFuncs[-1] = function (a, b) {
-            return sortDesc(sortKey(a), sortKey(b));
+            return sortDesc(sortKey(a, -1), sortKey(b, -1));
           };
           sortFuncs[1] = function (a, b) {
-            return sortAsc(sortKey(a), sortKey(b));
+            return sortAsc(sortKey(a, 1), sortKey(b, 1));
           };
         } else {
           var keyPaths = this.getKeyPaths(sortKey);

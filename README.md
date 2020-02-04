@@ -20,6 +20,9 @@ For a complete list of features and examples please visit the [project page](htt
 ### Release Notes
 ##### Fork by Kris Dages
 
+#### 0.8.2-prerelease
+- Pass sort order 1/-1 as second parameter to sortKey function
+
 #### 0.8.0-prerelease
 - Allow Array of path properties for sortKey instead of dotted syntax.
 

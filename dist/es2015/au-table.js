@@ -339,8 +339,8 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
         sortDesc = (a, b) => sortAsc(a, b) * -1;
       }
       if (typeof sortKey === 'function') {
-        sortFuncs[-1] = (a, b) => sortDesc(sortKey(a), sortKey(b));
-        sortFuncs[1] = (a, b) => sortAsc(sortKey(a), sortKey(b));
+        sortFuncs[-1] = (a, b) => sortDesc(sortKey(a, -1), sortKey(b, -1));
+        sortFuncs[1] = (a, b) => sortAsc(sortKey(a, 1), sortKey(b, 1));
       } else {
         let keyPaths = this.getKeyPaths(sortKey);
         if (keyPaths.length === 1) {
