@@ -20,6 +20,9 @@ For a complete list of features and examples please visit the [project page](htt
 ### Release Notes
 ##### Fork by Kris Dages
 
+#### 0.8.3-prerelease
+- Fix error creating collectionObserver in dataChanged() when data is null or undefined. 
+
 #### 0.8.2-prerelease
 - Pass sort order 1/-1 as second parameter to sortKey function
 
