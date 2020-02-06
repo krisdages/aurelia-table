@@ -547,7 +547,12 @@ define(['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
         this.dataObserver.dispose();
       }
 
-      this.dataObserver = this.bindingEngine.collectionObserver(this.data).subscribe(function () {
+      var data = this.data;
+      if (data == undefined) {
+        data = [];
+      }
+
+      this.dataObserver = this.bindingEngine.collectionObserver(data).subscribe(function () {
         return _this5.applyPlugins(updateTypes.data);
       });
 

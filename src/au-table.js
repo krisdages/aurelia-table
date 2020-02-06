@@ -413,7 +413,12 @@ export class AureliaTableCustomAttribute {
       this.dataObserver.dispose();
     }
 
-    this.dataObserver = this.bindingEngine.collectionObserver(this.data)
+    let data = this.data;
+    if (data == undefined) {
+      data = [];
+    }
+
+    this.dataObserver = this.bindingEngine.collectionObserver(data)
       .subscribe(() => this.applyPlugins(updateTypes.data));
 
     this.applyPlugins(updateTypes.data);

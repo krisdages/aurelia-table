@@ -408,7 +408,12 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
       this.dataObserver.dispose();
     }
 
-    this.dataObserver = this.bindingEngine.collectionObserver(this.data).subscribe(() => this.applyPlugins(updateTypes.data));
+    let data = this.data;
+    if (data == undefined) {
+      data = [];
+    }
+
+    this.dataObserver = this.bindingEngine.collectionObserver(data).subscribe(() => this.applyPlugins(updateTypes.data));
 
     this.applyPlugins(updateTypes.data);
   }
