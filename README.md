@@ -20,6 +20,18 @@ For a complete list of features and examples please visit the [project page](htt
 ### Release Notes
 ##### Fork by Kris Dages
 
+#### 0.9.0-prerelease
+- Update handling of default sort so it doesn't overwrite calls to `sortByKey()`
+  that happen before `attached()`
+  
+  Default sort attribute is now determined when the sort/filter/paging is applied
+   and memoized until attributes change,
+  rather than being applied immediately upon the attribute being added.
+   
+  This may be a breaking change:
+  the behavior if multiple attributes have "default" sort defined is different... 
+  the first default attribute in the set now takes precedence rather than the last.
+
 #### 0.8.3-prerelease
 - Fix error creating collectionObserver in dataChanged() when data is null or undefined. 
 
