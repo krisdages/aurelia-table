@@ -59,6 +59,12 @@ function _initializerWarningHelper(descriptor, context) {
 }
 
 var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aureliaFramework.inject)(_auTable.AureliaTableCustomAttribute, Element), _dec(_class = (_class2 = function () {
+  AutSortCustomAttribute.prototype.defaultChanged = function defaultChanged() {
+    if (this.isAttached) {
+      this.auTable.setSortAttributeDirty(this);
+    }
+  };
+
   _createClass(AutSortCustomAttribute, [{
     key: 'defaultOrder',
     get: function get() {
@@ -83,6 +89,7 @@ var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aurel
 
     _initDefineProp(this, 'default', _descriptor5, this);
 
+    this.isAttached = false;
     this.order = 0;
     this.orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
     this.ignoreEvent = false;
@@ -109,7 +116,7 @@ var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aurel
   };
 
   AutSortCustomAttribute.prototype.attached = function attached() {
-    if (this.key === null && this.custom === null) {
+    if (this.key == null && this.custom == null) {
       throw new Error('Must provide a key or a custom sort function.');
     }
 
@@ -119,19 +126,14 @@ var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aurel
     this.element.addEventListener('click', this.rowSelectedListener);
     this.auTable.registerSortAttribute(this);
 
-    this.handleDefault();
     this.setClass();
+    this.isAttached = true;
   };
 
   AutSortCustomAttribute.prototype.detached = function detached() {
     this.element.removeEventListener('click', this.rowSelectedListener);
     this.auTable.unregisterSortAttribute(this);
-  };
-
-  AutSortCustomAttribute.prototype.handleDefault = function handleDefault() {
-    if (this.default) {
-      this.auTable.setDefaultSort(this);
-    }
+    this.isAttached = false;
   };
 
   AutSortCustomAttribute.prototype.doSort = function doSort() {
@@ -156,9 +158,13 @@ var AutSortCustomAttribute = exports.AutSortCustomAttribute = (_dec = (0, _aurel
   };
 
   AutSortCustomAttribute.prototype.setActive = function setActive(order) {
+    var triggerSortChanged = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
     this.order = order;
     this.setClass();
-    this.doSort();
+    if (triggerSortChanged) {
+      this.doSort();
+    }
   };
 
   return AutSortCustomAttribute;

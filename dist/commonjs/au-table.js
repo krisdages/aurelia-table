@@ -139,6 +139,7 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     this.isAttached = false;
     this.sortAttributes = new Set();
     this.sortAttributesById = new Map();
+    this.sortAttributesDirty = false;
     this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
     this.sortKeysMap = new Map();
     this.filterObservers = [];
@@ -234,6 +235,7 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
 
       observer.dispose();
     }
+    this.isAttached = false;
   };
 
   AureliaTableCustomAttribute.prototype.filterChanged = function filterChanged() {
@@ -281,8 +283,21 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     var lastDataUpdate = { updateType: updateType };
     var result = { lastDataUpdate: lastDataUpdate };
 
+    var needsReSort = false;
+
+    if (this.sortAttributesDirty) {
+      var prevDefaultSortAttribute = this.defaultSortAttribute;
+
+      var defaultSortAttribute = this.defaultSortAttribute = this.findDefaultSortAttribute();
+      if (defaultSortAttribute != null && defaultSortAttribute !== prevDefaultSortAttribute) {
+        needsReSort = this.sortKey == null && this.customSort == null;
+      }
+
+      this.sortAttributesDirty = false;
+    }
+
     var localData = void 0;
-    if (updateType !== updateTypes.page || this.lastDataUpdate === undefined) {
+    if (needsReSort || updateType !== updateTypes.page || this.lastDataUpdate === undefined) {
       localData = this.getDataCopy();
 
       if (this.hasFilterValue()) {
@@ -290,6 +305,10 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
         lastDataUpdate.filterValues = this.filters.map(function (filter) {
           return filter.value;
         });
+      }
+
+      if (this.sortKey == null && this.customSort == null && this.defaultSortAttribute != null) {
+        this._applyDefaultSort(this.defaultSortAttribute);
       }
 
       var sortKey = this.sortKey,
@@ -323,6 +342,28 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     Object.assign(this, result);
   };
 
+  AureliaTableCustomAttribute.prototype.findDefaultSortAttribute = function findDefaultSortAttribute() {
+    for (var _iterator4 = this.sortAttributes, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+      var _ref6;
+
+      if (_isArray4) {
+        if (_i4 >= _iterator4.length) break;
+        _ref6 = _iterator4[_i4++];
+      } else {
+        _i4 = _iterator4.next();
+        if (_i4.done) break;
+        _ref6 = _i4.value;
+      }
+
+      var attr = _ref6;
+
+      if (attr.default) {
+        return attr;
+      }
+    }
+    return undefined;
+  };
+
   AureliaTableCustomAttribute.prototype.doFilter = function doFilter(toFilter) {
     var _this2 = this;
 
@@ -335,19 +376,19 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
       return _this2.getFilterFn(filter);
     });
     return toFilter.filter(function (item) {
-      for (var _iterator4 = filters, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-        var _ref6;
+      for (var _iterator5 = filters, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+        var _ref7;
 
-        if (_isArray4) {
-          if (_i4 >= _iterator4.length) break;
-          _ref6 = _iterator4[_i4++];
+        if (_isArray5) {
+          if (_i5 >= _iterator5.length) break;
+          _ref7 = _iterator5[_i5++];
         } else {
-          _i4 = _iterator4.next();
-          if (_i4.done) break;
-          _ref6 = _i4.value;
+          _i5 = _iterator5.next();
+          if (_i5.done) break;
+          _ref7 = _i5.value;
         }
 
-        var filter = _ref6;
+        var filter = _ref7;
 
         if (!filter(item)) {
           return false;
@@ -396,19 +437,19 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     });
 
     return function (item) {
-      for (var _iterator5 = valueFuncs, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
-        var _ref7;
+      for (var _iterator6 = valueFuncs, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
+        var _ref8;
 
-        if (_isArray5) {
-          if (_i5 >= _iterator5.length) break;
-          _ref7 = _iterator5[_i5++];
+        if (_isArray6) {
+          if (_i6 >= _iterator6.length) break;
+          _ref8 = _iterator6[_i6++];
         } else {
-          _i5 = _iterator5.next();
-          if (_i5.done) break;
-          _ref7 = _i5.value;
+          _i6 = _iterator6.next();
+          if (_i6.done) break;
+          _ref8 = _i6.value;
         }
 
-        var valueFunc = _ref7;
+        var valueFunc = _ref8;
 
         var value = valueFunc(item);
 
@@ -545,7 +586,7 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     }
 
     var data = this.data;
-    if (data == undefined) {
+    if (data == null) {
       data = [];
     }
 
@@ -566,7 +607,29 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
     this.emitSortChanged();
   };
 
+  AureliaTableCustomAttribute.prototype._applyDefaultSort = function _applyDefaultSort(sortAttribute) {
+    var defaultOrder = sortAttribute.defaultOrder;
+    if (defaultOrder === undefined) return;
+
+    this.sortKey = sortAttribute.key;
+    this.sortType = sortAttribute.type;
+    this.customSort = sortAttribute.custom;
+    this.sortOrder = defaultOrder;
+    this.pendingSort = undefined;
+
+    this.emitSortChanged();
+
+    sortAttribute.setActive(defaultOrder, false);
+  };
+
+  AureliaTableCustomAttribute.prototype.setSortAttributeDirty = function setSortAttributeDirty(sortAttribute) {
+    if (this.sortAttributes.has(sortAttribute)) {
+      this.sortAttributesDirty = true;
+    }
+  };
+
   AureliaTableCustomAttribute.prototype.registerSortAttribute = function registerSortAttribute(sortAttribute) {
+    this.sortAttributesDirty = true;
     this.sortAttributes.add(sortAttribute);
     var key = sortAttribute.key,
         id = sortAttribute.id;
@@ -591,15 +654,13 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
   };
 
   AureliaTableCustomAttribute.prototype.unregisterSortAttribute = function unregisterSortAttribute(sortAttribute) {
+    this.sortAttributesDirty = true;
     this.sortAttributes.delete(sortAttribute);
     if (sortAttribute.id !== undefined) {
       this.sortAttributesById.delete(sortAttribute.id);
     }
-  };
-
-  AureliaTableCustomAttribute.prototype.setDefaultSort = function setDefaultSort(sortAttribute) {
-    if (this.sortKey === undefined) {
-      sortAttribute.setActive(sortAttribute.defaultOrder);
+    if (this.defaultSortAttribute === sortAttribute) {
+      this.defaultSortAttribute = this.findDefaultSortAttribute();
     }
   };
 
@@ -617,30 +678,6 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
   };
 
   AureliaTableCustomAttribute.prototype.sortByKey = function sortByKey(key, order) {
-    for (var _iterator6 = this.sortAttributes, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
-      var _ref8;
-
-      if (_isArray6) {
-        if (_i6 >= _iterator6.length) break;
-        _ref8 = _iterator6[_i6++];
-      } else {
-        _i6 = _iterator6.next();
-        if (_i6.done) break;
-        _ref8 = _i6.value;
-      }
-
-      var attribute = _ref8;
-
-      if (attribute.key !== key) continue;
-
-      attribute.setActive(order);
-      return;
-    }
-
-    this.pendingSort = { key: key, order: order };
-  };
-
-  AureliaTableCustomAttribute.prototype.emitSortChanged = function emitSortChanged() {
     for (var _iterator7 = this.sortAttributes, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator]();;) {
       var _ref9;
 
@@ -654,6 +691,30 @@ var AureliaTableCustomAttribute = exports.AureliaTableCustomAttribute = (_dec = 
       }
 
       var attribute = _ref9;
+
+      if (attribute.key !== key) continue;
+
+      attribute.setActive(order);
+      return;
+    }
+
+    this.pendingSort = { key: key, order: order };
+  };
+
+  AureliaTableCustomAttribute.prototype.emitSortChanged = function emitSortChanged() {
+    for (var _iterator8 = this.sortAttributes, _isArray8 = Array.isArray(_iterator8), _i8 = 0, _iterator8 = _isArray8 ? _iterator8 : _iterator8[Symbol.iterator]();;) {
+      var _ref10;
+
+      if (_isArray8) {
+        if (_i8 >= _iterator8.length) break;
+        _ref10 = _iterator8[_i8++];
+      } else {
+        _i8 = _iterator8.next();
+        if (_i8.done) break;
+        _ref10 = _i8.value;
+      }
+
+      var attribute = _ref10;
 
       attribute.sortChangedListener();
     }

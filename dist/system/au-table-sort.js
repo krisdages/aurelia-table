@@ -81,6 +81,12 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
       }();
 
       _export('AutSortCustomAttribute', AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, Element), _dec(_class = (_class2 = function () {
+        AutSortCustomAttribute.prototype.defaultChanged = function defaultChanged() {
+          if (this.isAttached) {
+            this.auTable.setSortAttributeDirty(this);
+          }
+        };
+
         _createClass(AutSortCustomAttribute, [{
           key: 'defaultOrder',
           get: function get() {
@@ -105,6 +111,7 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
 
           _initDefineProp(this, 'default', _descriptor5, this);
 
+          this.isAttached = false;
           this.order = 0;
           this.orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
           this.ignoreEvent = false;
@@ -131,7 +138,7 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
         };
 
         AutSortCustomAttribute.prototype.attached = function attached() {
-          if (this.key === null && this.custom === null) {
+          if (this.key == null && this.custom == null) {
             throw new Error('Must provide a key or a custom sort function.');
           }
 
@@ -141,19 +148,14 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
           this.element.addEventListener('click', this.rowSelectedListener);
           this.auTable.registerSortAttribute(this);
 
-          this.handleDefault();
           this.setClass();
+          this.isAttached = true;
         };
 
         AutSortCustomAttribute.prototype.detached = function detached() {
           this.element.removeEventListener('click', this.rowSelectedListener);
           this.auTable.unregisterSortAttribute(this);
-        };
-
-        AutSortCustomAttribute.prototype.handleDefault = function handleDefault() {
-          if (this.default) {
-            this.auTable.setDefaultSort(this);
-          }
+          this.isAttached = false;
         };
 
         AutSortCustomAttribute.prototype.doSort = function doSort() {
@@ -178,9 +180,13 @@ System.register(['aurelia-framework', './au-table'], function (_export, _context
         };
 
         AutSortCustomAttribute.prototype.setActive = function setActive(order) {
+          var triggerSortChanged = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
           this.order = order;
           this.setClass();
-          this.doSort();
+          if (triggerSortChanged) {
+            this.doSort();
+          }
         };
 
         return AutSortCustomAttribute;

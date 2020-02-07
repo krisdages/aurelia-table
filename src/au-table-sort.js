@@ -9,6 +9,11 @@ export class AutSortCustomAttribute {
   @bindable custom;
   @bindable type;
   @bindable default;
+  defaultChanged() {
+    if (this.isAttached) {
+      this.auTable.setSortAttributeDirty(this);
+    }
+  }
 
   get defaultOrder() {
     if (!this.default)
@@ -16,6 +21,8 @@ export class AutSortCustomAttribute {
 
     return this.default === 'desc' ? -1 : 1;
   }
+
+  isAttached = false;
 
   order = 0;
   orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
@@ -44,8 +51,11 @@ export class AutSortCustomAttribute {
     }
   }
 
+
+
   attached() {
-    if (this.key === null && this.custom === null) {
+    // == is intended
+    if (this.key == null && this.custom == null) {
       throw new Error('Must provide a key or a custom sort function.');
     }
 
@@ -55,19 +65,14 @@ export class AutSortCustomAttribute {
     this.element.addEventListener('click', this.rowSelectedListener);
     this.auTable.registerSortAttribute(this);
 
-    this.handleDefault();
     this.setClass();
+    this.isAttached = true;
   }
 
   detached() {
     this.element.removeEventListener('click', this.rowSelectedListener);
     this.auTable.unregisterSortAttribute(this);
-  }
-
-  handleDefault() {
-    if (this.default) {
-      this.auTable.setDefaultSort(this);
-    }
+    this.isAttached = false;
   }
 
   doSort() {
@@ -87,9 +92,11 @@ export class AutSortCustomAttribute {
     this.doSort();
   }
 
-  setActive(order) {
+  setActive(order, triggerSortChanged = true) {
     this.order = order;
     this.setClass();
-    this.doSort();
+    if (triggerSortChanged) {
+      this.doSort();
+    }
   }
 }

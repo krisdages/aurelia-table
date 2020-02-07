@@ -47,6 +47,11 @@ import { inject, bindable } from 'aurelia-framework';
 import { AureliaTableCustomAttribute } from './au-table';
 
 export let AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, Element), _dec(_class = (_class2 = class AutSortCustomAttribute {
+  defaultChanged() {
+    if (this.isAttached) {
+      this.auTable.setSortAttributeDirty(this);
+    }
+  }
 
   get defaultOrder() {
     if (!this.default) return undefined;
@@ -65,6 +70,7 @@ export let AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, 
 
     _initDefineProp(this, 'default', _descriptor5, this);
 
+    this.isAttached = false;
     this.order = 0;
     this.orderClasses = ['aut-desc', 'aut-sortable', 'aut-asc'];
     this.ignoreEvent = false;
@@ -91,7 +97,7 @@ export let AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, 
   }
 
   attached() {
-    if (this.key === null && this.custom === null) {
+    if (this.key == null && this.custom == null) {
       throw new Error('Must provide a key or a custom sort function.');
     }
 
@@ -101,19 +107,14 @@ export let AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, 
     this.element.addEventListener('click', this.rowSelectedListener);
     this.auTable.registerSortAttribute(this);
 
-    this.handleDefault();
     this.setClass();
+    this.isAttached = true;
   }
 
   detached() {
     this.element.removeEventListener('click', this.rowSelectedListener);
     this.auTable.unregisterSortAttribute(this);
-  }
-
-  handleDefault() {
-    if (this.default) {
-      this.auTable.setDefaultSort(this);
-    }
+    this.isAttached = false;
   }
 
   doSort() {
@@ -133,10 +134,12 @@ export let AutSortCustomAttribute = (_dec = inject(AureliaTableCustomAttribute, 
     this.doSort();
   }
 
-  setActive(order) {
+  setActive(order, triggerSortChanged = true) {
     this.order = order;
     this.setClass();
-    this.doSort();
+    if (triggerSortChanged) {
+      this.doSort();
+    }
   }
 }, (_descriptor = _applyDecoratedDescriptor(_class2.prototype, 'id', [bindable], {
   enumerable: true,

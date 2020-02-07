@@ -127,6 +127,7 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     this.isAttached = false;
     this.sortAttributes = new Set();
     this.sortAttributesById = new Map();
+    this.sortAttributesDirty = false;
     this.sortTypeMap = new Map([[Number, sortFunctions.numeric], [Boolean, sortFunctions.numeric], [String, sortFunctions.ascii], [Date, sortFunctions.numeric], [Intl.Collator, sortFunctions.collator], ['auto', sortFunctions.auto]]);
     this.sortKeysMap = new Map();
     this.filterObservers = [];
@@ -175,6 +176,7 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     for (let observer of this.filterObservers) {
       observer.dispose();
     }
+    this.isAttached = false;
   }
 
   filterChanged() {
@@ -222,13 +224,30 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     const lastDataUpdate = { updateType };
     const result = { lastDataUpdate };
 
+    let needsReSort = false;
+
+    if (this.sortAttributesDirty) {
+      let prevDefaultSortAttribute = this.defaultSortAttribute;
+
+      let defaultSortAttribute = this.defaultSortAttribute = this.findDefaultSortAttribute();
+      if (defaultSortAttribute != null && defaultSortAttribute !== prevDefaultSortAttribute) {
+        needsReSort = this.sortKey == null && this.customSort == null;
+      }
+
+      this.sortAttributesDirty = false;
+    }
+
     let localData;
-    if (updateType !== updateTypes.page || this.lastDataUpdate === undefined) {
+    if (needsReSort || updateType !== updateTypes.page || this.lastDataUpdate === undefined) {
       localData = this.getDataCopy();
 
       if (this.hasFilterValue()) {
         localData = this.doFilter(localData);
         lastDataUpdate.filterValues = this.filters.map(filter => filter.value);
+      }
+
+      if (this.sortKey == null && this.customSort == null && this.defaultSortAttribute != null) {
+        this._applyDefaultSort(this.defaultSortAttribute);
       }
 
       const { sortKey, customSort, sortOrder } = this;
@@ -257,6 +276,15 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
 
     lastDataUpdate.displayData = result.displayData = localData;
     Object.assign(this, result);
+  }
+
+  findDefaultSortAttribute() {
+    for (const attr of this.sortAttributes) {
+      if (attr.default) {
+        return attr;
+      }
+    }
+    return undefined;
   }
 
   doFilter(toFilter) {
@@ -409,7 +437,7 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     }
 
     let data = this.data;
-    if (data == undefined) {
+    if (data == null) {
       data = [];
     }
 
@@ -428,7 +456,29 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
     this.emitSortChanged();
   }
 
+  _applyDefaultSort(sortAttribute) {
+    const defaultOrder = sortAttribute.defaultOrder;
+    if (defaultOrder === undefined) return;
+
+    this.sortKey = sortAttribute.key;
+    this.sortType = sortAttribute.type;
+    this.customSort = sortAttribute.custom;
+    this.sortOrder = defaultOrder;
+    this.pendingSort = undefined;
+
+    this.emitSortChanged();
+
+    sortAttribute.setActive(defaultOrder, false);
+  }
+
+  setSortAttributeDirty(sortAttribute) {
+    if (this.sortAttributes.has(sortAttribute)) {
+      this.sortAttributesDirty = true;
+    }
+  }
+
   registerSortAttribute(sortAttribute) {
+    this.sortAttributesDirty = true;
     this.sortAttributes.add(sortAttribute);
     const { key, id } = sortAttribute;
     if (id !== undefined) {
@@ -447,15 +497,13 @@ export let AureliaTableCustomAttribute = (_dec = inject(BindingEngine), _dec2 = 
   }
 
   unregisterSortAttribute(sortAttribute) {
+    this.sortAttributesDirty = true;
     this.sortAttributes.delete(sortAttribute);
     if (sortAttribute.id !== undefined) {
       this.sortAttributesById.delete(sortAttribute.id);
     }
-  }
-
-  setDefaultSort(sortAttribute) {
-    if (this.sortKey === undefined) {
-      sortAttribute.setActive(sortAttribute.defaultOrder);
+    if (this.defaultSortAttribute === sortAttribute) {
+      this.defaultSortAttribute = this.findDefaultSortAttribute();
     }
   }
 
